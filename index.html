@@ -604,6 +604,45 @@ html.lock { overflow: hidden; }
               </div>
             </div>
           </fieldset>
+
+          <fieldset>
+            <legend>Shipping information</legend>
+            <div class="fields" style="gap:16px">
+              <div>
+                <label class="lbl" for="phone">Phone number</label>
+                <input class="input" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 555-5555" required>
+              </div>
+              <div>
+                <label class="lbl" for="addr1">Street address</label>
+                <input class="input" id="addr1" name="addr1" type="text" autocomplete="address-line1" placeholder="123 Main St" required>
+              </div>
+              <div>
+                <label class="lbl" for="addr2">Apartment, suite, unit (optional)</label>
+                <input class="input" id="addr2" name="addr2" type="text" autocomplete="address-line2">
+              </div>
+              <div class="row2">
+                <div>
+                  <label class="lbl" for="city">City</label>
+                  <input class="input" id="city" name="city" type="text" autocomplete="address-level2" required>
+                </div>
+                <div>
+                  <label class="lbl" for="region">State / region</label>
+                  <input class="input" id="region" name="region" type="text" autocomplete="address-level1" required>
+                </div>
+              </div>
+              <div class="row2">
+                <div>
+                  <label class="lbl" for="zip">ZIP / postal code</label>
+                  <input class="input" id="zip" name="zip" type="text" autocomplete="postal-code" required>
+                </div>
+                <div>
+                  <label class="lbl" for="country">Country</label>
+                  <input class="input" id="country" name="country" type="text" autocomplete="country-name" value="United States" required>
+                </div>
+              </div>
+            </div>
+            <p class="hint">We use this to ship your order and to reach you if we have a question.</p>
+          </fieldset>
         </div>
 
         <aside class="summary" aria-label="Order summary">
@@ -871,7 +910,8 @@ function el(tag, cls, text) {
 /* ---------- State ---------- */
 const state = {
   mode: "custom", product: CONFIG.products[0].id, color: "black", material: "pla",
-  quality: "standard", qty: 1, desc: "", size: "", file: "", stl: null, name: "", email: ""
+  quality: "standard", qty: 1, desc: "", size: "", file: "", stl: null, name: "", email: "",
+  phone: "", addr1: "", addr2: "", city: "", region: "", zip: "", country: "United States"
 };
 const form = $("#orderForm");
 
@@ -1013,6 +1053,7 @@ form.addEventListener("input", e => {
   else if (t.id === "size") state.size = t.value;
   else if (t.id === "name") state.name = t.value;
   else if (t.id === "email") state.email = t.value;
+  else if (["phone", "addr1", "addr2", "city", "region", "zip", "country"].includes(t.id)) state[t.id] = t.value;
   else if (t.id === "qty") state.qty = Math.min(99, Math.max(1, parseInt(t.value, 10) || 1));
   else return;
   renderSummary(); hideResult();
@@ -1023,6 +1064,10 @@ $$("[data-step]").forEach(b => b.addEventListener("click", () => {
   sync(); hideResult();
 }));
 
+function addressLines() {
+  const t = k => state[k].trim();
+  return [t("addr1"), t("addr2"), [t("city"), [t("region"), t("zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "), t("country")].filter(Boolean);
+}
 function summaryText(uploaded) {
   const ship = state.mode === "ship";
   const p = by(CONFIG.products, state.product);
@@ -1035,7 +1080,7 @@ function summaryText(uploaded) {
   }
   lines.push(`Color: ${by(CONFIG.colors, state.color).name}`, `Material: ${by(CONFIG.materials, state.material).name}`);
   if (!ship) { const q = by(CONFIG.qualities, state.quality); lines.push(`Quality: ${q.name} (${q.layer})`); }
-  lines.push(`Quantity: ${state.qty}`, ...(ship && CONFIG.shipping != null ? [`Shipping: ${money(shipFee())}`] : []), `Total: ${ship ? money(p.price * state.qty + shipFee()) : "Quoted after review"}`, "", `Name: ${state.name.trim()}`, `Email: ${state.email.trim()}`);
+  lines.push(`Quantity: ${state.qty}`, ...(ship && CONFIG.shipping != null ? [`Shipping: ${money(shipFee())}`] : []), `Total: ${ship ? money(p.price * state.qty + shipFee()) : "Quoted after review"}`, "", `Name: ${state.name.trim()}`, `Email: ${state.email.trim()}`, `Phone: ${state.phone.trim()}`, "", "Ship to:", ...addressLines());
   return lines.join("\n");
 }
 form.addEventListener("submit", async e => {
@@ -1261,6 +1306,8 @@ async function emailSubmission(item) {
     f["Total"] = item.total != null ? money(item.total) : "Quote needed";
     if (item.stl) f["STL file"] = item.stl.name + " (customer must send it separately)";
   }
+  if (item.phone) f["Phone"] = item.phone;
+  if (item.shipTo) f["Ship to"] = item.shipTo;
   f["name"] = item.name; f["email"] = item.email;
   f["_subject"] = (item.kind === "support" ? "Idea to a Reality: message from " : "Idea to a Reality: new order from ") + item.name;
   f["_template"] = "table"; f["_captcha"] = "false";
@@ -1321,7 +1368,7 @@ function orderItem(stl) {
     product: ship ? p.name : null, desc: ship ? null : state.desc.trim(), size: ship ? null : (state.size.trim() || null),
     color: c.name, colorHex: c.hex, material: by(CONFIG.materials, state.material).name,
     quality: ship ? null : by(CONFIG.qualities, state.quality).name, qty: state.qty,
-    total: ship ? p.price * state.qty + shipFee() : null, name: state.name.trim(), email: state.email.trim(), stl
+    total: ship ? p.price * state.qty + shipFee() : null, name: state.name.trim(), email: state.email.trim(), phone: state.phone.trim(), shipTo: addressLines().join(", "), stl
   };
 }
 

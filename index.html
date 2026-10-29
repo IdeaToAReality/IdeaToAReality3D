@@ -515,7 +515,7 @@ html.lock { overflow: hidden; }
       </div>
       <ol class="steps">
         <li><span class="step-n">01</span><h3>Tell us your idea</h3><p>Describe what you want, add a rough size, and attach a model file if you already have one.</p></li>
-        <li><span class="step-n">02</span><h3>Choose color and material</h3><p>Pick from our colors and filaments. Not sure which? PLA is a good start for display pieces.</p></li>
+        <li><span class="step-n">02</span><h3>Choose color and material</h3><p>Pick from our colors. Everything is printed in PLA for crisp detail and a smooth finish.</p></li>
         <li><span class="step-n">03</span><h3>We print and ship</h3><p>Your piece is printed layer by layer, checked, and sent your way.</p></li>
       </ol>
     </div>
@@ -696,7 +696,7 @@ html.lock { overflow: hidden; }
         </details>
         <details>
           <summary>Which material should I choose?</summary>
-          <p>PLA suits display pieces and indoor use. PETG is tougher for everyday parts. ABS handles heat, and TPU stays flexible. Tell us what the piece is for and we can help you choose.</p>
+          <p>Right now everything is printed in PLA, which suits display pieces, toys, and indoor use. More materials may be added later.</p>
         </details>
         <details>
           <summary>Custom or ready to ship?</summary>
@@ -775,34 +775,34 @@ const CONFIG = {
   contactEmail: "", /* add your support email here once it exists, e.g. "hello@yourdomain.com" */
   currency: "$",
   colors: [
-    { id: "black",    name: "Black",    hex: "#1b1b19" },
-    { id: "graphite", name: "Graphite", hex: "#55554f" },
-    { id: "silver",   name: "Silver",   hex: "#b9b9b1" },
-    { id: "white",    name: "White",    hex: "#f1f1ea" },
-    { id: "yellow",   name: "Yellow",   hex: "#ffd400" },
-    { id: "orange",   name: "Orange",   hex: "#ff7a1a" }
+    { id: "white",  name: "White",      hex: "#f1f1ea" },
+    { id: "black",  name: "Black",      hex: "#1b1b19" },
+    { id: "orange", name: "Orange",     hex: "#ff7a1a" },
+    { id: "blue",   name: "Blue",       hex: "#2f6fdb" },
+    { id: "yellow", name: "Yellow",     hex: "#ffd400" },
+    { id: "red",    name: "Red",        hex: "#d63a2f" },
+    { id: "gray",   name: "Gray",       hex: "#8d8d86" },
+    { id: "green",  name: "Green",      hex: "#3f9a4a" },
+    { id: "olive",  name: "Olive Gray", hex: "#7b7d68" }
   ],
   materials: [
-    { id: "pla",  name: "PLA",  blurb: "Crisp detail and a smooth finish. Best for display pieces and indoor use.", strength: 3, heat: 1, flex: 1 },
-    { id: "petg", name: "PETG", blurb: "Tougher and more water resistant. A good all-rounder for everyday parts.", strength: 4, heat: 2, flex: 2 },
-    { id: "abs",  name: "ABS",  blurb: "Handles more heat and wear. Good for parts that get warm or rough use.", strength: 4, heat: 4, flex: 2 },
-    { id: "tpu",  name: "TPU",  blurb: "Flexible and rubbery. Good for grips, bumpers, and soft-touch parts.", strength: 3, heat: 2, flex: 5 }
+    { id: "pla",  name: "PLA",  blurb: "Crisp detail and a smooth finish. Great for display pieces, toys, and everyday indoor use.", strength: 3, heat: 1, flex: 1 }
   ],
   qualities: [
     { id: "draft",    name: "Draft",    layer: "0.28 mm", note: "Fastest" },
     { id: "standard", name: "Standard", layer: "0.20 mm", note: "Balanced" },
     { id: "fine",     name: "Fine",     layer: "0.12 mm", note: "Smoothest" }
   ],
-  /* Sample products. Replace with your own. `colors` lists what is in stock for each. */
+  /* Products. SET EACH PRICE (price: 0 is a placeholder). size is optional, e.g. "110 mm wide". `colors` lists what is in stock. */
   products: [
-    { id: "phone-stand", name: "Phone Stand",       price: 12, material: "pla",  size: "110 mm wide", shape: "phone",   colors: ["black", "graphite", "white", "yellow"] },
-    { id: "planter",     name: "Desk Planter",      price: 16, material: "pla",  size: "90 mm tall",  shape: "planter", colors: ["white", "graphite", "yellow", "black"] },
-    { id: "hook",        name: "Headphone Hook",    price: 14, material: "petg", size: "120 mm deep", shape: "hook",    colors: ["black", "silver", "orange"] },
-    { id: "cable",       name: "Cable Keeper",      price: 8,  material: "tpu",  size: "100 mm wide", shape: "cable",   colors: ["black", "yellow", "orange"] },
-    { id: "gear",        name: "Gear Desk Toy",     price: 10, material: "pla",  size: "115 mm wide", shape: "gear",    colors: ["yellow", "silver", "black", "white"] },
-    { id: "tray",        name: "Hex Catch-All Tray",price: 18, material: "petg", size: "130 mm wide", shape: "tray",    colors: ["graphite", "black", "white"] },
-    { id: "vase",        name: "Bud Vase",          price: 15, material: "pla",  size: "105 mm tall", shape: "vase",    colors: ["white", "silver", "yellow"] },
-    { id: "cup",         name: "Pen Cup",           price: 11, material: "petg", size: "85 mm tall",  shape: "cup",     colors: ["black", "graphite", "orange", "white"] }
+    { id: "c4", name: "C4 Clicker Toy", price: 0, material: "pla", size: "", shape: "c4", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] },
+    { id: "cone", name: "Cone Fidget Spiral", price: 0, material: "pla", size: "", shape: "cone", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] },
+    { id: "phone-stand", name: "Phone Stand", price: 0, material: "pla", size: "", shape: "phone", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] },
+    { id: "dragon", name: "Articulated Dragon", price: 0, material: "pla", size: "", shape: "dragon", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] },
+    { id: "gearshift", name: "GearShift Toy Model", price: 0, material: "pla", size: "", shape: "gearshift", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] },
+    { id: "cup", name: "Pen Cup", price: 0, material: "pla", size: "", shape: "cup", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] },
+    { id: "cable", name: "Cable Keeper", price: 0, material: "pla", size: "", shape: "cable", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] },
+    { id: "hook", name: "Headphone Hook", price: 0, material: "pla", size: "", shape: "hook", colors: ["white", "black", "orange", "blue", "yellow", "red", "gray", "green", "olive"] }
   ]
 };
 
@@ -826,6 +826,14 @@ function gearPath() {
   }
   return d + "Z" + circle(cx, cy, 14);
 }
+function conePath() {
+  let d = "M100 24L146 130H54Z";
+  [58, 82, 106].forEach(y => {
+    const w = (y - 24) * 0.434 - 6;
+    d += `M${(100 - w).toFixed(1)} ${y}L${(100 + w).toFixed(1)} ${y + 5}V${y + 9}L${(100 - w).toFixed(1)} ${y + 4}Z`;
+  });
+  return d;
+}
 const SHAPES = {
   phone:   "M36 132V116H78L97 36H117L100 116H128V96H148V116H164V132Z",
   planter: "M58 52H142V64H134L124 128Q123 136 114 136H86Q77 136 76 128L66 64H58Z",
@@ -834,7 +842,11 @@ const SHAPES = {
   gear:    gearPath(),
   tray:    "M100 24L152 54V114L100 144L48 114V54Z" + "M100 42L136 63V105L100 126L64 105V63Z",
   vase:    "M84 28H116C116 46 142 66 142 96C142 122 128 134 120 134H80C72 134 58 122 58 96C58 66 84 46 84 28Z",
-  cup:     "M60 40H140V124Q140 134 130 134H70Q60 134 60 124Z"
+  cup:     "M60 40H140V124Q140 134 130 134H70Q60 134 60 124Z",
+  c4:      "M44 56H156V132H44Z" + "M58 68H142V92H58Z" + circle(72, 111, 7) + circle(100, 111, 7) + circle(128, 111, 7) + "M88 38H112V56H88Z",
+  cone:    conePath(),
+  dragon:  circle(18, 122, 7) + circle(38, 112, 11) + circle(62, 104, 11) + circle(86, 96, 12) + circle(111, 92, 12) + circle(135, 84, 11) + circle(157, 68, 10) + "M158 36L184 40L176 58L160 54Z",
+  gearshift: "M50 112H150V134H50Z" + "M68 120H132V126H68Z" + "M96 52H104V112H96Z" + circle(100, 36, 16)
 };
 function thumb(shape, hex) {
   const d = SHAPES[shape];
@@ -870,7 +882,7 @@ function renderShop() {
     const body = el("div", "card-body");
     const top = el("div", "card-top");
     top.append(el("h3", "", p.name), el("span", "price", money(p.price)));
-    const meta = el("p", "card-meta", `${by(CONFIG.materials, p.material).name} · ${p.size}`);
+    const meta = el("p", "card-meta", [by(CONFIG.materials, p.material).name, p.size].filter(Boolean).join(" · "));
     const mini = el("div", "mini");
     mini.setAttribute("role", "group");
     mini.setAttribute("aria-label", `Color for ${p.name}`);

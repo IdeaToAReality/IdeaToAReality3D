@@ -1295,6 +1295,12 @@ async function emailSubmission(item) {
   const f = { };
   if (item.kind === "support") {
     f["Type"] = "Support message"; f["Topic"] = item.topic; f["About"] = item.ref || "-"; f["Message"] = item.message;
+  } else if (item.mode === "cart") {
+    f["Type"] = "Cart checkout started (confirm payment in PayPal)";
+    f["Items"] = item.items; f["Subtotal"] = money(item.subtotal);
+    if (item.discount > 0) f["Discount"] = "-" + money(item.discount);
+    f["Shipping"] = CONFIG.shipping == null ? "Not set" : money(item.shipping);
+    f["Total"] = money(item.total);
   } else {
     f["Type"] = item.mode === "ship" ? "Order: ready to ship" : "Order: custom print";
     if (item.product) f["Product"] = item.product;
@@ -1309,7 +1315,7 @@ async function emailSubmission(item) {
   if (item.phone) f["Phone"] = item.phone;
   if (item.shipTo) f["Ship to"] = item.shipTo;
   f["name"] = item.name; f["email"] = item.email;
-  f["_subject"] = (item.kind === "support" ? "Idea to a Reality: message from " : "Idea to a Reality: new order from ") + item.name;
+  f["_subject"] = (item.kind === "support" ? "Idea to a Reality: message from " : item.mode === "cart" ? "Idea to a Reality: cart checkout started by " : "Idea to a Reality: new order from ") + item.name;
   f["_template"] = "table"; f["_captcha"] = "false";
   try {
     const res = await fetch("https://formsubmit.co/ajax/" + encodeURIComponent(CONFIG.notifyEmail), {
@@ -1638,7 +1644,8 @@ Store.init().then(() => { if (!Store.db) $("#adminFab").hidden = true; });
 const PAYMENT_METHODS = [
   { id: "paypal", name: "PayPal", note: "Pay with your PayPal account or a card." }
 ];
-const Cart = { lines: [], step: "cart", payEmail: "", coupon: null, couponCode: "", couponMsg: null };
+const Cart = { lines: [], step: "cart", payEmail: "", coupon: null, couponCode: "", couponMsg: null, lastSent: "",
+  ship: { name: "", phone: "", addr1: "", addr2: "", city: "", region: "", zip: "", country: "United States" } };
 const USED_KEY = "itar-coupons-used-v1";
 const usedKey = (code, email) => String(code).toUpperCase() + "|" + email.trim().toLowerCase();
 function usedList() { try { return JSON.parse(localStorage.getItem(USED_KEY) || "[]"); } catch (e) { return []; } }
@@ -1705,6 +1712,43 @@ function trow(label, value, big) {
   r.append(el("span", "", label), el(big ? "strong" : "span", big ? "" : "mono", value));
   return r;
 }
+const SHIP_REQUIRED = ["name", "phone", "addr1", "city", "region", "zip", "country"];
+function shipBlock() {
+  const box = el("div");
+  box.append(el("p", "pay-title", "Shipping information"));
+  const mk = (key, label, type, auto, ph) => {
+    const d = el("div"), l = el("label", "lbl", label), i = el("input", "input");
+    i.id = "cs-" + key; i.type = type; i.autocomplete = auto; i.value = Cart.ship[key]; if (ph) i.placeholder = ph;
+    i.addEventListener("input", () => { Cart.ship[key] = i.value; });
+    l.htmlFor = i.id; d.append(l, i); return d;
+  };
+  const pair = (a, b) => { const r = el("div", "row2"); r.append(a, b); return r; };
+  const grid = el("div"); grid.style.cssText = "display:flex;flex-direction:column;gap:14px";
+  grid.append(
+    mk("name", "Full name", "text", "name"),
+    mk("phone", "Phone number", "tel", "tel", "(555) 555-5555"),
+    mk("addr1", "Street address", "text", "address-line1"),
+    mk("addr2", "Apartment, suite, unit (optional)", "text", "address-line2"),
+    pair(mk("city", "City", "text", "address-level2"), mk("region", "State / region", "text", "address-level1")),
+    pair(mk("zip", "ZIP / postal code", "text", "postal-code"), mk("country", "Country", "text", "country-name")));
+  box.append(grid, el("p", "hint", "We use this to ship your order and to reach you with questions."));
+  return box;
+}
+/* Tells the shop a cart checkout was started, with the shipping details. Payment itself is confirmed in PayPal. */
+function notifyCart() {
+  const t = k => Cart.ship[k].trim();
+  const sub = cartSubtotal(), disc = cartDiscount(), fee = shipFee();
+  const items = Cart.lines.map(l => {
+    const p = by(CONFIG.products, l.pid);
+    return `${l.qty} x ${p.name} (${by(CONFIG.colors, l.color).name}, ${by(CONFIG.materials, p.material).name}) ${money(p.price * l.qty)}`;
+  }).join("; ");
+  const shipTo = [t("addr1"), t("addr2"), [t("city"), [t("region"), t("zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "), t("country")].filter(Boolean).join(", ");
+  const sig = [items, Cart.payEmail, shipTo, t("phone"), t("name")].join("|");
+  if (sig === Cart.lastSent) return;
+  Cart.lastSent = sig;
+  saveSubmission({ id: newId(), kind: "order", mode: "cart", createdAt: new Date().toISOString(), items, subtotal: sub, discount: disc,
+    shipping: fee, total: sub - disc + fee, name: t("name"), email: Cart.payEmail.trim(), phone: t("phone"), shipTo, qty: cartCount() });
+}
 function renderCart() {
   const n = cartCount();
   $("#cartCount").textContent = String(n);
@@ -1754,6 +1798,7 @@ function renderCart() {
     inp.addEventListener("input", () => { Cart.payEmail = inp.value.trim(); if (payLink) payLink.href = paypalUrl(); });
     wrap.append(lab, inp, el("p", "hint", "Enter the email for the PayPal account you'll pay from. The payment goes to Idea to a Reality."));
     body.append(wrap);
+    body.append(shipBlock());
     const cp = el("div", "coupon"), cl = el("label", "lbl", "Coupon code"); cl.htmlFor = "couponCode";
     cp.append(cl);
     if (Cart.coupon) {
@@ -1789,7 +1834,13 @@ function renderCart() {
     const payErr = el("p", "field-err", "Enter your PayPal email before paying."); payErr.hidden = true;
     pay.addEventListener("click", e => {
       const ok = EMAIL_RE.test(Cart.payEmail);
+      payErr.textContent = "Enter your PayPal email before paying.";
       payErr.hidden = ok; if (!ok) { e.preventDefault(); const f = $("#payEmail"); if (f) f.focus(); return; }
+      const miss = SHIP_REQUIRED.find(k => !Cart.ship[k].trim());
+      if (miss) {
+        e.preventDefault(); payErr.textContent = "Fill in your shipping information before paying."; payErr.hidden = false;
+        const f = $("#cs-" + miss); if (f) f.focus(); return;
+      }
       const c = Cart.coupon;
       if (c) {
         if (c.email !== Cart.payEmail.trim().toLowerCase() || couponUsed(c.code, Cart.payEmail)) {
@@ -1799,6 +1850,7 @@ function renderCart() {
         }
         markCouponUsed(c.code, Cart.payEmail);
       }
+      notifyCart();
     });
     const back = el("button", "btn btn-ghost btn-block", "Back to cart");
     back.type = "button"; back.addEventListener("click", () => { Cart.step = "cart"; renderCart(); });

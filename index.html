@@ -848,10 +848,10 @@ html.lock { overflow: hidden; }
 const CONFIG = {
   paypalEmail: "Pamela.Burke22@gmail.com",
   currencyCode: "USD",
-  testMode: true, /* true = every product costs testPrice so you can test PayPal. Set to false to go live. */
+  testMode: false, /* true = every product costs testPrice so you can test PayPal. Set to false to go live. */
   testPrice: 0.01, /* PayPal can't process a $0.00 payment, so 1 cent is the lowest test price */
-  collectShipping: false, /* false = temporarily don't ask customers for phone and address. true = ask. */
-  shipping: 0, /* flat shipping price per order, in dollars. 0 = free shipping. null = not set yet. */
+  collectShipping: true, /* false = don't ask customers for phone and address. true = ask. */
+  shipping: 5.99, /* flat shipping price per order, in dollars. 0 = free shipping. null = not set yet. */
   /* Coupons: none yet. Add entries like these when you're ready. Each code works once per email.
        { code: "SWEET10", type: "percent", value: 10 }                       10% off
        { code: "FIVEOFF", type: "fixed", value: 5, expires: "2026-12-31" }   $5 off, optional expiry date */

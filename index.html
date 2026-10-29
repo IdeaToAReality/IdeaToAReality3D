@@ -802,7 +802,7 @@ html.lock { overflow: hidden; }
     <h2 id="editTitle">Enter password</h2>
     <p class="sub" id="editSub">Edit prices, stock, and colors for the ready-to-ship products.</p>
     <div id="editField">
-      <label class="lbl" for="editPw">Password</label>
+      <label class="lbl" for="editPw" id="editLbl">Password</label>
       <input class="input" id="editPw" type="password" autocomplete="current-password">
     </div>
     <p class="field-err" id="editErr" role="alert" hidden></p>
@@ -817,6 +817,7 @@ html.lock { overflow: hidden; }
   <b>Editor mode</b>
   <span class="st" id="editStatus">No changes yet.</span>
   <button class="btn go" type="button" id="editSave" disabled>Save changes</button>
+  <button class="btn" type="button" id="editForget" hidden>Forget token</button>
   <button class="btn" type="button" id="editExit">Exit</button>
 </div>
 
@@ -842,7 +843,6 @@ html.lock { overflow: hidden; }
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 /* ---------- Shop configuration: edit these lists to change what customers can pick ---------- */
 const CONFIG = {
@@ -855,7 +855,9 @@ const CONFIG = {
        { code: "SWEET10", type: "percent", value: 10 }                       10% off
        { code: "FIVEOFF", type: "fixed", value: 5, expires: "2026-12-31" }   $5 off, optional expiry date */
   coupons: [],
-  editorUrl: "", /* Google Apps Script web app that saves editor changes into the sheet */
+  productsUrl: "products.json", /* prices, stock and colors are read from this file in the repo */
+  editorHash: "48c7c4a14ac7c493f9756bfa33c75657e0e6aca305affd0d3e8ace1aaa011e41", /* fingerprint of the Editor password */
+  github: { owner: "IdeaToAReality", repo: "IdeaToAReality3D", branch: "main", path: "products.json" },
   sheetUrl: "", /* Google Sheet published as CSV. When set, prices, stock and colors come from the sheet. */
   notifyEmail: "ideatoareality3d@gmail.com", /* every custom order and support message is emailed here (sent through formsubmit.co) */
   phoneDisplay: "859-913-1032",
@@ -898,7 +900,7 @@ const applyTestPrices = () => { if (CONFIG.testMode) CONFIG.products.forEach(p =
 applyTestPrices();
 const soldOut = p => p.stock === 0 || !p.colors.length;
 const stockText = p => soldOut(p) ? "Out of stock" : p.stock == null ? "In stock" : p.stock + " in stock";
-const Editor = { on: false, pw: "", changed: new Set() };
+const Editor = { on: false, busy: false, changed: new Set() };
 const edPrice = p => p.realPrice != null ? p.realPrice : p.price;
 
 /* ---------- Helpers ---------- */
@@ -2004,19 +2006,40 @@ function applyProducts(list) {
   $("#productGrid").replaceChildren();
   renderShop(); renderPickers(); sync(); renderCart();
 }
-async function loadSheet() {
-  if (!CONFIG.sheetUrl) return;
+function jsonToProducts(text) {
+  const data = JSON.parse(text);
+  if (!Array.isArray(data)) return null;
+  const known = CONFIG.colors.map(c => c.id), seen = {};
+  return data.filter(x => x && typeof x.name === "string" && x.name.trim() && isFinite(Number(x.price)) && Number(x.price) >= 0).map(x => {
+    let id = String(x.id || x.name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "item";
+    seen[id] = (seen[id] || 0) + 1; if (seen[id] > 1) id += "-" + seen[id];
+    const stock = x.stock === null || x.stock === undefined || x.stock === "" ? null : Math.max(0, parseInt(x.stock, 10) || 0);
+    return { id, name: x.name.trim(), price: Math.round(Number(x.price) * 100) / 100, material: "pla", size: String(x.size || ""),
+      shape: SHAPES[x.shape] ? x.shape : "box", stock, colors: (Array.isArray(x.colors) ? x.colors : known).filter(c => known.includes(c)) };
+  });
+}
+async function loadProducts() {
+  const url = CONFIG.productsUrl || CONFIG.sheetUrl;
+  if (!url) return;
   try {
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 8000);
-    const res = await fetch(CONFIG.sheetUrl + (CONFIG.sheetUrl.includes("?") ? "&" : "?") + "t=" + Math.floor(Date.now() / 60000), { signal: ctl.signal });
+    const res = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { signal: ctl.signal, cache: "no-store" });
     clearTimeout(timer);
     if (!res.ok) throw new Error("http " + res.status);
-    const list = sheetToProducts(await res.text());
+    const text = await res.text();
+    const list = CONFIG.productsUrl ? jsonToProducts(text) : sheetToProducts(text);
     if (list && list.length) applyProducts(list);
   } catch (e) { /* keep the built-in product list */ }
 }
 
-/* ---------- Editor mode: password-protected edits that save into the Google Sheet ---------- */
+/* ---------- Editor mode: password gate, then changes are published to products.json in the GitHub repo ---------- */
+const TOKEN_KEY = "itar-gh-token";
+const getToken = () => { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; } };
+const setToken = t => { try { if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); } catch (e) {} };
+async function sha256(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
 function editBox(p, badge) {
   const box = el("div", "edit-box");
   const touch = () => {
@@ -2054,63 +2077,74 @@ function editStatus(msg) {
   const n = Editor.changed.size;
   $("#editStatus").textContent = msg || (n ? n + " product" + (n === 1 ? "" : "s") + " changed. Press Save changes." : "No changes yet.");
   $("#editSave").disabled = !n || Editor.busy;
-}
-async function editorCall(payload) {
-  const res = await fetch(CONFIG.editorUrl, { method: "POST", body: JSON.stringify(payload) });
-  return res.json();
+  $("#editForget").hidden = !getToken();
 }
 function rerenderShop() { $("#productGrid").replaceChildren(); renderShop(); }
+let dlgMode = "password";
+function openDialog(mode) {
+  dlgMode = mode;
+  const tok = mode === "token";
+  $("#editTitle").textContent = tok ? "Connect GitHub" : "Enter password";
+  $("#editSub").textContent = tok ? "Paste your GitHub token once so this browser can publish your changes. It is stored only on this device." : "Edit prices, stock, and colors for the ready-to-ship products.";
+  $("#editLbl").textContent = tok ? "GitHub token" : "Password";
+  $("#editGo").textContent = tok ? "Save token and publish" : "Unlock editor";
+  $("#editPw").value = ""; $("#editErr").hidden = true;
+  $("#editWrap").hidden = false; $("#editPw").focus();
+}
+function closeDialog() { $("#editWrap").hidden = true; }
 function openEditor() {
   if (Editor.on) { $("#shop").scrollIntoView({ behavior: "smooth" }); return; }
-  const ready = !!CONFIG.editorUrl;
-  $("#editField").hidden = !ready; $("#editGo").hidden = !ready;
-  $("#editSub").textContent = ready ? "Edit prices, stock, and colors for the ready-to-ship products."
-    : "The editor isn't connected yet. It needs the editor link added to the site first.";
-  $("#editErr").hidden = true; $("#editPw").value = "";
-  $("#editWrap").hidden = false;
-  (ready ? $("#editPw") : $("#editCancel")).focus();
+  openDialog("password");
 }
-function closeEditorDialog() { $("#editWrap").hidden = true; }
+async function publishChanges() {
+  if (!Editor.changed.size || Editor.busy) return;
+  const token = getToken();
+  if (!token) { openDialog("token"); return; }
+  Editor.busy = true; editStatus("Publishing…");
+  const g = CONFIG.github, api = `https://api.github.com/repos/${g.owner}/${g.repo}/contents/${g.path}`;
+  const H = { Authorization: "Bearer " + token, Accept: "application/vnd.github+json" };
+  try {
+    const cur = await fetch(api + "?ref=" + encodeURIComponent(g.branch) + "&t=" + Date.now(), { headers: H });
+    if (cur.status === 401) throw { auth: true };
+    const sha = cur.ok ? (await cur.json()).sha : undefined;
+    const out = CONFIG.products.map(p => ({ id: p.id, name: p.name, price: edPrice(p), stock: p.stock == null ? null : p.stock, shape: p.shape, size: p.size || "", material: p.material, colors: p.colors }));
+    const body = { message: "Update products from the site Editor", branch: g.branch, content: btoa(unescape(encodeURIComponent(JSON.stringify(out, null, 2) + "\n"))) };
+    if (sha) body.sha = sha;
+    const put = await fetch(api, { method: "PUT", headers: Object.assign({ "Content-Type": "application/json" }, H), body: JSON.stringify(body) });
+    if (put.status === 401 || put.status === 403 || put.status === 404) throw { auth: true };
+    if (!put.ok) throw new Error("put " + put.status);
+    Editor.changed.clear(); Editor.busy = false;
+    editStatus("Published. Customers will see it in about a minute.");
+  } catch (ex) {
+    Editor.busy = false;
+    if (ex && ex.auth) { setToken(""); editStatus("GitHub didn't accept the token. Press Save changes to enter a new one."); }
+    else editStatus("Couldn't publish. Your changes are still here, try again.");
+  }
+}
 $("#editorLink").addEventListener("click", e => { e.preventDefault(); openEditor(); });
-$("#editCancel").addEventListener("click", closeEditorDialog);
-$("#editWrap").addEventListener("click", e => { if (e.target === e.currentTarget) closeEditorDialog(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#editWrap").hidden) closeEditorDialog(); });
+$("#editCancel").addEventListener("click", closeDialog);
+$("#editWrap").addEventListener("click", e => { if (e.target === e.currentTarget) closeDialog(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#editWrap").hidden) closeDialog(); });
 $("#editForm").addEventListener("submit", async e => {
   e.preventDefault();
-  const pw = $("#editPw").value, err = $("#editErr"), btn = $("#editGo");
-  if (!pw) { err.textContent = "Enter the password."; err.hidden = false; return; }
-  btn.disabled = true; btn.textContent = "Checking…"; err.hidden = true;
-  try {
-    const r = await editorCall({ action: "login", password: pw });
-    if (!r.ok) { err.textContent = r.error === "password" ? "That password isn't right." : "The editor couldn't sign you in."; err.hidden = false; return; }
-    Editor.on = true; Editor.pw = pw; Editor.changed.clear();
-    document.body.classList.add("editing"); $("#editBar").hidden = false; editStatus();
-    closeEditorDialog(); rerenderShop();
-    $("#shop").scrollIntoView({ behavior: "smooth" });
-  } catch (ex) {
-    err.textContent = "Couldn't reach the editor. Check your connection and try again."; err.hidden = false;
-  } finally { btn.disabled = false; btn.textContent = "Unlock editor"; }
+  const v = $("#editPw").value.trim(), err = $("#editErr");
+  if (!v) { err.textContent = dlgMode === "token" ? "Paste your token." : "Enter the password."; err.hidden = false; return; }
+  if (dlgMode === "token") { setToken(v); closeDialog(); publishChanges(); return; }
+  let ok = false;
+  try { ok = (await sha256("itar:" + v)) === CONFIG.editorHash; }
+  catch (ex) { err.textContent = "This browser can't check the password on this page."; err.hidden = false; return; }
+  if (!ok) { err.textContent = "That password isn't right."; err.hidden = false; return; }
+  Editor.on = true; Editor.changed.clear();
+  document.body.classList.add("editing"); $("#editBar").hidden = false; editStatus();
+  closeDialog(); rerenderShop();
+  $("#shop").scrollIntoView({ behavior: "smooth" });
 });
-$("#editSave").addEventListener("click", async () => {
-  if (!Editor.changed.size || Editor.busy) return;
-  Editor.busy = true; editStatus("Saving…");
-  const rows = CONFIG.products.filter(p => Editor.changed.has(p.id)).map(p => ({
-    name: p.name, price: edPrice(p), stock: p.stock == null ? "" : p.stock,
-    colors: Object.fromEntries(CONFIG.colors.map(c => [c.name, p.colors.includes(c.id) ? "Yes" : "No"]))
-  }));
-  try {
-    const r = await editorCall({ action: "save", password: Editor.pw, rows });
-    if (!r.ok) throw new Error(r.error || "save");
-    Editor.changed.clear(); Editor.busy = false;
-    editStatus(r.missing && r.missing.length ? "Saved, but these aren't in the sheet: " + r.missing.join(", ") : "Saved. The public site updates within about 5 minutes.");
-  } catch (ex) {
-    Editor.busy = false; editStatus("Couldn't save. Your changes are still here, try again.");
-  }
-});
+$("#editSave").addEventListener("click", publishChanges);
+$("#editForget").addEventListener("click", () => { setToken(""); editStatus("Token removed from this device."); });
 $("#editExit").addEventListener("click", () => {
   if (Editor.changed.size && !confirm("You have unsaved changes. Exit anyway?")) return;
   if (Editor.changed.size) { location.reload(); return; }
-  Editor.on = false; Editor.pw = ""; document.body.classList.remove("editing"); $("#editBar").hidden = true;
+  Editor.on = false; document.body.classList.remove("editing"); $("#editBar").hidden = true;
   rerenderShop();
 });
 
@@ -2118,7 +2152,7 @@ $("#editExit").addEventListener("click", () => {
 renderShop();
 renderPickers();
 sync();
-loadSheet();
+loadProducts();
 </script>
 
 </body></html>

@@ -1,0 +1,162 @@
+[
+  {
+    "id": "c4",
+    "name": "C4 Clicker Toy",
+    "price": 3.99,
+    "stock": null,
+    "shape": "c4",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  },
+  {
+    "id": "cone",
+    "name": "Cone Fidget Spiral",
+    "price": 4.99,
+    "stock": null,
+    "shape": "cone",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  },
+  {
+    "id": "phone-stand",
+    "name": "Phone Stand",
+    "price": 8.4,
+    "stock": null,
+    "shape": "phone",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  },
+  {
+    "id": "dragon",
+    "name": "Articulated Dragon",
+    "price": 9.99,
+    "stock": null,
+    "shape": "dragon",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  },
+  {
+    "id": "gearshift",
+    "name": "GearShift Toy Model",
+    "price": 2.98,
+    "stock": null,
+    "shape": "gearshift",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  },
+  {
+    "id": "cup",
+    "name": "Pen Cup",
+    "price": 5.4,
+    "stock": null,
+    "shape": "cup",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  },
+  {
+    "id": "cable",
+    "name": "Cable Keeper",
+    "price": 1.49,
+    "stock": null,
+    "shape": "cable",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  },
+  {
+    "id": "hook",
+    "name": "Headphone Hook",
+    "price": 6.55,
+    "stock": null,
+    "shape": "hook",
+    "size": "",
+    "material": "pla",
+    "colors": [
+      "white",
+      "black",
+      "orange",
+      "blue",
+      "yellow",
+      "red",
+      "gray",
+      "green",
+      "olive"
+    ]
+  }
+]

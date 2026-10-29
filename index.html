@@ -625,7 +625,7 @@ html.lock { overflow: hidden; }
             </div>
           </fieldset>
 
-          <fieldset>
+          <fieldset id="shipFieldset">
             <legend>Shipping information</legend>
             <div class="fields" style="gap:16px">
               <div>
@@ -850,6 +850,7 @@ const CONFIG = {
   currencyCode: "USD",
   testMode: true, /* true = every product costs testPrice so you can test PayPal. Set to false to go live. */
   testPrice: 0.01, /* PayPal can't process a $0.00 payment, so 1 cent is the lowest test price */
+  collectShipping: false, /* false = temporarily don't ask customers for phone and address. true = ask. */
   shipping: 0, /* flat shipping price per order, in dollars. 0 = free shipping. null = not set yet. */
   /* Coupons: none yet. Add entries like these when you're ready. Each code works once per email.
        { code: "SWEET10", type: "percent", value: 10 }                       10% off
@@ -1141,7 +1142,7 @@ function summaryText(uploaded) {
   }
   lines.push(`Color: ${by(CONFIG.colors, state.color).name}`, `Material: ${by(CONFIG.materials, state.material).name}`);
   if (!ship) { const q = by(CONFIG.qualities, state.quality); lines.push(`Quality: ${q.name} (${q.layer})`); }
-  lines.push(`Quantity: ${state.qty}`, ...(ship && CONFIG.shipping != null ? [`Shipping: ${shipLabel()}`] : []), `Total: ${ship ? money(p.price * state.qty + shipFee()) : "Quoted after review"}`, "", `Name: ${state.name.trim()}`, `Email: ${state.email.trim()}`, `Phone: ${state.phone.trim()}`, "", "Ship to:", ...addressLines());
+  lines.push(`Quantity: ${state.qty}`, ...(ship && CONFIG.shipping != null ? [`Shipping: ${shipLabel()}`] : []), `Total: ${ship ? money(p.price * state.qty + shipFee()) : "Quoted after review"}`, "", `Name: ${state.name.trim()}`, `Email: ${state.email.trim()}`, ...(CONFIG.collectShipping ? [`Phone: ${state.phone.trim()}`, "", "Ship to:", ...addressLines()] : []));
   return lines.join("\n");
 }
 form.addEventListener("submit", async e => {
@@ -1811,12 +1812,12 @@ function notifyCart() {
     const p = by(CONFIG.products, l.pid);
     return `${l.qty} x ${p.name} (${by(CONFIG.colors, l.color).name}, ${by(CONFIG.materials, p.material).name}) ${money(p.price * l.qty)}`;
   }).join("; ");
-  const shipTo = [t("addr1"), t("addr2"), [t("city"), [t("region"), t("zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "), t("country")].filter(Boolean).join(", ");
+  const shipTo = !CONFIG.collectShipping ? "" : [t("addr1"), t("addr2"), [t("city"), [t("region"), t("zip")].filter(Boolean).join(" ")].filter(Boolean).join(", "), t("country")].filter(Boolean).join(", ");
   const sig = [items, Cart.payEmail, shipTo, t("phone"), t("name")].join("|");
   if (sig === Cart.lastSent) return;
   Cart.lastSent = sig;
   saveSubmission({ id: newId(), kind: "order", mode: "cart", createdAt: new Date().toISOString(), items, subtotal: sub, discount: disc,
-    shipping: fee, total: sub - disc + fee, name: t("name"), email: Cart.payEmail.trim(), phone: t("phone"), shipTo, qty: cartCount() });
+    shipping: fee, total: sub - disc + fee, name: t("name") || Cart.payEmail.trim(), email: Cart.payEmail.trim(), phone: t("phone"), shipTo, qty: cartCount() });
 }
 function renderCart() {
   const n = cartCount();
@@ -1867,7 +1868,7 @@ function renderCart() {
     inp.addEventListener("input", () => { Cart.payEmail = inp.value.trim(); if (payLink) payLink.href = paypalUrl(); });
     wrap.append(lab, inp, el("p", "hint", "Enter the email for the PayPal account you'll pay from. The payment goes to Idea to a Reality."));
     body.append(wrap);
-    body.append(shipBlock());
+    if (CONFIG.collectShipping) body.append(shipBlock());
     const cp = el("div", "coupon"), cl = el("label", "lbl", "Coupon code"); cl.htmlFor = "couponCode";
     cp.append(cl);
     if (Cart.coupon) {
@@ -1905,7 +1906,7 @@ function renderCart() {
       const ok = EMAIL_RE.test(Cart.payEmail);
       payErr.textContent = "Enter your PayPal email before paying.";
       payErr.hidden = ok; if (!ok) { e.preventDefault(); const f = $("#payEmail"); if (f) f.focus(); return; }
-      const miss = SHIP_REQUIRED.find(k => !Cart.ship[k].trim());
+      const miss = CONFIG.collectShipping ? SHIP_REQUIRED.find(k => !Cart.ship[k].trim()) : null;
       if (miss) {
         e.preventDefault(); payErr.textContent = "Fill in your shipping information before paying."; payErr.hidden = false;
         const f = $("#cs-" + miss); if (f) f.focus(); return;
@@ -2150,6 +2151,10 @@ $("#editExit").addEventListener("click", () => {
 });
 
 /* ---------- Boot ---------- */
+if (!CONFIG.collectShipping) {
+  $("#shipFieldset").hidden = true;
+  $$("#shipFieldset input").forEach(i => { i.required = false; });
+}
 renderShop();
 renderPickers();
 sync();

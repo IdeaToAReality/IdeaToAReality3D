@@ -1767,10 +1767,10 @@ function paypalUrl() {
   Cart.lines.forEach((l, i) => {
     const p = by(CONFIG.products, l.pid), n = i + 1;
     q.set("item_name_" + n, `${p.name} (${by(CONFIG.colors, l.color).name}, ${by(CONFIG.materials, p.material).name})`);
-    q.set("amount_" + n, p.price.toFixed(2));
+    q.set("amount_" + n, Math.max(0.01, Number(p.price) || 0).toFixed(2)); /* PayPal rejects $0.00 */
     q.set("quantity_" + n, String(l.qty));
   });
-  if (CONFIG.shipping != null) q.set("handling_cart", Number(CONFIG.shipping).toFixed(2));
+  if (CONFIG.shipping != null && Number(CONFIG.shipping) > 0) q.set("handling_cart", Number(CONFIG.shipping).toFixed(2));
   const disc = cartDiscount();
   if (disc > 0) q.set("discount_amount_cart", disc.toFixed(2));
   return "https://www.paypal.com/cgi-bin/webscr?" + q.toString();

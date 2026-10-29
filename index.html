@@ -850,7 +850,7 @@ const CONFIG = {
   currencyCode: "USD",
   testMode: true, /* true = every product costs testPrice so you can test PayPal. Set to false to go live. */
   testPrice: 0.01, /* PayPal can't process a $0.00 payment, so 1 cent is the lowest test price */
-  shipping: 5.99, /* flat shipping price per order, in dollars. Set to null to hide shipping. */
+  shipping: 0, /* flat shipping price per order, in dollars. 0 = free shipping. null = not set yet. */
   /* Coupons: none yet. Add entries like these when you're ready. Each code works once per email.
        { code: "SWEET10", type: "percent", value: 10 }                       10% off
        { code: "FIVEOFF", type: "fixed", value: 5, expires: "2026-12-31" }   $5 off, optional expiry date */
@@ -908,6 +908,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 const by = (list, id) => list.find(x => x.id === id);
 const shipFee = () => CONFIG.shipping == null ? 0 : Number(CONFIG.shipping);
+const shipLabel = () => CONFIG.shipping == null ? "Added at checkout" : shipFee() === 0 ? "Free" : money(shipFee());
 const money = n => CONFIG.currency + n.toLocaleString("en-US", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
 const circle = (cx, cy, r) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
 
@@ -1073,7 +1074,7 @@ function summaryRows() {
   rows.push(["Color", c.name, false, c.hex], ["Material", m.name]);
   if (!ship) rows.push(["Quality", `${q.name} · ${q.layer}`]);
   rows.push(["Quantity", String(state.qty)]);
-  if (ship && CONFIG.shipping != null) rows.push(["Shipping", money(shipFee())]);
+  if (ship && CONFIG.shipping != null) rows.push(["Shipping", shipLabel()]);
   return rows;
 }
 function renderSummary() {
@@ -1140,7 +1141,7 @@ function summaryText(uploaded) {
   }
   lines.push(`Color: ${by(CONFIG.colors, state.color).name}`, `Material: ${by(CONFIG.materials, state.material).name}`);
   if (!ship) { const q = by(CONFIG.qualities, state.quality); lines.push(`Quality: ${q.name} (${q.layer})`); }
-  lines.push(`Quantity: ${state.qty}`, ...(ship && CONFIG.shipping != null ? [`Shipping: ${money(shipFee())}`] : []), `Total: ${ship ? money(p.price * state.qty + shipFee()) : "Quoted after review"}`, "", `Name: ${state.name.trim()}`, `Email: ${state.email.trim()}`, `Phone: ${state.phone.trim()}`, "", "Ship to:", ...addressLines());
+  lines.push(`Quantity: ${state.qty}`, ...(ship && CONFIG.shipping != null ? [`Shipping: ${shipLabel()}`] : []), `Total: ${ship ? money(p.price * state.qty + shipFee()) : "Quoted after review"}`, "", `Name: ${state.name.trim()}`, `Email: ${state.email.trim()}`, `Phone: ${state.phone.trim()}`, "", "Ship to:", ...addressLines());
   return lines.join("\n");
 }
 form.addEventListener("submit", async e => {
@@ -1359,7 +1360,7 @@ async function emailSubmission(item) {
     f["Type"] = "Cart checkout started (confirm payment in PayPal)";
     f["Items"] = item.items; f["Subtotal"] = money(item.subtotal);
     if (item.discount > 0) f["Discount"] = "-" + money(item.discount);
-    f["Shipping"] = CONFIG.shipping == null ? "Not set" : money(item.shipping);
+    f["Shipping"] = CONFIG.shipping == null ? "Not set" : shipLabel();
     f["Total"] = money(item.total);
   } else {
     f["Type"] = item.mode === "ship" ? "Order: ready to ship" : "Order: custom print";
@@ -1889,8 +1890,8 @@ function renderCart() {
   const sub = cartSubtotal(), ship = CONFIG.shipping, disc = cartDiscount(), after = sub - disc;
   foot.append(trow("Subtotal", money(sub)));
   if (disc > 0) foot.append(trow(`Discount (${Cart.coupon.code})`, "−" + money(disc)));
-  foot.append(trow("Shipping", ship == null ? "Added at checkout" : money(Number(ship))),
-    trow("Your total plus shipping", ship == null ? `${money(after)} + shipping` : money(after + Number(ship)), true));
+  foot.append(trow("Shipping", shipLabel()),
+    trow(ship == null || Number(ship) > 0 ? "Your total plus shipping" : "Your total", ship == null ? `${money(after)} + shipping` : money(after + Number(ship)), true));
   if (Cart.step === "cart") {
     const go = el("button", "btn btn-primary btn-lg btn-block", "Proceed to Checkout");
     go.type = "button"; go.addEventListener("click", () => { Cart.step = "pay"; renderCart(); });

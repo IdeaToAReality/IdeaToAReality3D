@@ -315,6 +315,23 @@ select.input { appearance: auto; cursor: pointer; }
 .faq details[open] summary::after { content: "−"; }
 .faq p { padding: 0 0 18px; color: var(--muted); max-width: 62ch; }
 
+/* Stock badge + editor */
+.card { position: relative; }
+.stock-badge { position: absolute; top: 10px; right: 10px; z-index: 1; padding: 5px 8px; background: var(--bg); color: var(--fg); border: 1px solid var(--line-strong); border-radius: 3px; font: 500 .6875rem/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.stock-badge.out { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+body.editing { padding-bottom: 96px; }
+.edit-box { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 16px; border-top: 1px dashed var(--line-strong); background: var(--surface-2); }
+.edit-box .row2 { gap: 12px; }
+.edit-box .lbl { margin-bottom: 6px; }
+.ed-colors { display: flex; flex-wrap: wrap; gap: 8px; }
+.ed-colors button { width: 28px; height: 28px; padding: 0; border-radius: 50%; background: var(--c); border: 1.5px solid rgba(128,128,128,.55); cursor: pointer; opacity: .28; }
+.ed-colors button[aria-pressed="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 4px var(--select); }
+.editbar { position: fixed; z-index: 35; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--accent); color: var(--on-accent); border-top: 2px solid var(--on-accent); }
+.editbar b { font: 800 1rem/1 var(--font-display); font-stretch: 108%; }
+.editbar .st { flex: 1; min-width: 160px; font: 500 .8125rem/1.3 var(--font-mono); }
+.editbar .btn { border-color: var(--on-accent); color: var(--on-accent); background: transparent; }
+.editbar .btn.go { background: var(--on-accent); color: var(--accent); }
+.editbar .btn:disabled { opacity: .5; cursor: not-allowed; }
 /* Cart */
 .testbar { padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); background: var(--accent); color: var(--on-accent); font: 600 .75rem/1.4 var(--font-mono); letter-spacing: .04em; text-align: center; }
 .cart-btn .count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font: 700 .75rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
@@ -465,6 +482,7 @@ html.lock { overflow: hidden; }
       <a href="#process">How it works</a>
       <a href="#order">Order</a>
       <a href="#support">Support</a>
+      <a href="#editor" id="editorLink">Editor</a>
     </nav>
     <a class="btn btn-primary" href="#order">Make an Order</a>
     <button class="btn btn-ghost cart-btn" id="cartBtn" type="button" aria-haspopup="dialog" aria-label="Open cart">Cart <span class="count" id="cartCount">0</span></button>
@@ -778,6 +796,30 @@ html.lock { overflow: hidden; }
   </div>
 </div>
 
+<div class="deal-wrap" id="editWrap" hidden>
+  <form class="deal" id="editForm" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <p class="eyebrow">Editor</p>
+    <h2 id="editTitle">Enter password</h2>
+    <p class="sub" id="editSub">Edit prices, stock, and colors for the ready-to-ship products.</p>
+    <div id="editField">
+      <label class="lbl" for="editPw">Password</label>
+      <input class="input" id="editPw" type="password" autocomplete="current-password">
+    </div>
+    <p class="field-err" id="editErr" role="alert" hidden></p>
+    <div class="cta-row">
+      <button class="btn btn-primary" type="submit" id="editGo">Unlock editor</button>
+      <button class="btn btn-ghost" type="button" id="editCancel">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<div class="editbar" id="editBar" hidden>
+  <b>Editor mode</b>
+  <span class="st" id="editStatus">No changes yet.</span>
+  <button class="btn go" type="button" id="editSave" disabled>Save changes</button>
+  <button class="btn" type="button" id="editExit">Exit</button>
+</div>
+
 <div class="cart-scrim" id="cartScrim" hidden></div>
 <aside class="cart" id="cartPanel" role="dialog" aria-modal="true" aria-labelledby="cartTitle" hidden>
   <div class="cart-head">
@@ -813,6 +855,7 @@ const CONFIG = {
        { code: "SWEET10", type: "percent", value: 10 }                       10% off
        { code: "FIVEOFF", type: "fixed", value: 5, expires: "2026-12-31" }   $5 off, optional expiry date */
   coupons: [],
+  editorUrl: "", /* Google Apps Script web app that saves editor changes into the sheet */
   sheetUrl: "", /* Google Sheet published as CSV. When set, prices, stock and colors come from the sheet. */
   notifyEmail: "ideatoareality3d@gmail.com", /* every custom order and support message is emailed here (sent through formsubmit.co) */
   phoneDisplay: "859-913-1032",
@@ -854,6 +897,9 @@ const CONFIG = {
 const applyTestPrices = () => { if (CONFIG.testMode) CONFIG.products.forEach(p => { p.realPrice = p.price; p.price = CONFIG.testPrice; }); };
 applyTestPrices();
 const soldOut = p => p.stock === 0 || !p.colors.length;
+const stockText = p => soldOut(p) ? "Out of stock" : p.stock == null ? "In stock" : p.stock + " in stock";
+const Editor = { on: false, pw: "", changed: new Set() };
+const edPrice = p => p.realPrice != null ? p.realPrice : p.price;
 
 /* ---------- Helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -960,7 +1006,9 @@ function renderShop() {
       setTimeout(() => { add.textContent = "Add to cart"; }, 1500);
     });
     body.append(top, meta, mini, add);
-    card.append(media, body);
+    const badge = el("span", "stock-badge" + (out ? " out" : ""), stockText(p));
+    card.append(media, body, badge);
+    if (Editor.on) card.append(editBox(p, badge));
     grid.append(card);
   });
 }
@@ -1967,6 +2015,104 @@ async function loadSheet() {
     if (list && list.length) applyProducts(list);
   } catch (e) { /* keep the built-in product list */ }
 }
+
+/* ---------- Editor mode: password-protected edits that save into the Google Sheet ---------- */
+function editBox(p, badge) {
+  const box = el("div", "edit-box");
+  const touch = () => {
+    Editor.changed.add(p.id);
+    badge.textContent = stockText(p); badge.classList.toggle("out", soldOut(p));
+    editStatus();
+  };
+  const mk = (label, input) => { const d = el("div"), l = el("label", "lbl", label); input.id = "ed-" + p.id + "-" + label.split(" ")[0].toLowerCase(); l.htmlFor = input.id; d.append(l, input); return d; };
+  const price = el("input", "input"); price.type = "number"; price.min = "0"; price.step = "0.01"; price.inputMode = "decimal"; price.value = edPrice(p).toFixed(2);
+  price.addEventListener("input", () => {
+    const v = parseFloat(price.value); if (!isFinite(v) || v < 0) return;
+    if (p.realPrice != null) p.realPrice = Math.round(v * 100) / 100; else p.price = Math.round(v * 100) / 100;
+    touch();
+  });
+  const stock = el("input", "input"); stock.type = "number"; stock.min = "0"; stock.step = "1"; stock.inputMode = "numeric"; stock.placeholder = "Unlimited"; stock.value = p.stock == null ? "" : p.stock;
+  stock.addEventListener("input", () => { p.stock = stock.value === "" ? null : Math.max(0, parseInt(stock.value, 10) || 0); touch(); });
+  const row = el("div", "row2"); row.append(mk("Price ($)", price), mk("Stock", stock));
+  const cl = el("p", "lbl", "Colors in stock"); cl.style.marginBottom = "0";
+  const cw = el("div", "ed-colors"); cw.setAttribute("role", "group"); cw.setAttribute("aria-label", "Colors in stock for " + p.name);
+  CONFIG.colors.forEach(c => {
+    const b = el("button"); b.type = "button"; b.style.setProperty("--c", c.hex); b.title = c.name; b.setAttribute("aria-label", c.name);
+    b.setAttribute("aria-pressed", p.colors.includes(c.id) ? "true" : "false");
+    b.addEventListener("click", () => {
+      const on = b.getAttribute("aria-pressed") !== "true";
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      p.colors = CONFIG.colors.filter(x => x.id === c.id ? on : p.colors.includes(x.id)).map(x => x.id);
+      touch();
+    });
+    cw.append(b);
+  });
+  box.append(row, cl, cw);
+  return box;
+}
+function editStatus(msg) {
+  const n = Editor.changed.size;
+  $("#editStatus").textContent = msg || (n ? n + " product" + (n === 1 ? "" : "s") + " changed. Press Save changes." : "No changes yet.");
+  $("#editSave").disabled = !n || Editor.busy;
+}
+async function editorCall(payload) {
+  const res = await fetch(CONFIG.editorUrl, { method: "POST", body: JSON.stringify(payload) });
+  return res.json();
+}
+function rerenderShop() { $("#productGrid").replaceChildren(); renderShop(); }
+function openEditor() {
+  if (Editor.on) { $("#shop").scrollIntoView({ behavior: "smooth" }); return; }
+  const ready = !!CONFIG.editorUrl;
+  $("#editField").hidden = !ready; $("#editGo").hidden = !ready;
+  $("#editSub").textContent = ready ? "Edit prices, stock, and colors for the ready-to-ship products."
+    : "The editor isn't connected yet. It needs the editor link added to the site first.";
+  $("#editErr").hidden = true; $("#editPw").value = "";
+  $("#editWrap").hidden = false;
+  (ready ? $("#editPw") : $("#editCancel")).focus();
+}
+function closeEditorDialog() { $("#editWrap").hidden = true; }
+$("#editorLink").addEventListener("click", e => { e.preventDefault(); openEditor(); });
+$("#editCancel").addEventListener("click", closeEditorDialog);
+$("#editWrap").addEventListener("click", e => { if (e.target === e.currentTarget) closeEditorDialog(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#editWrap").hidden) closeEditorDialog(); });
+$("#editForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const pw = $("#editPw").value, err = $("#editErr"), btn = $("#editGo");
+  if (!pw) { err.textContent = "Enter the password."; err.hidden = false; return; }
+  btn.disabled = true; btn.textContent = "Checking…"; err.hidden = true;
+  try {
+    const r = await editorCall({ action: "login", password: pw });
+    if (!r.ok) { err.textContent = r.error === "password" ? "That password isn't right." : "The editor couldn't sign you in."; err.hidden = false; return; }
+    Editor.on = true; Editor.pw = pw; Editor.changed.clear();
+    document.body.classList.add("editing"); $("#editBar").hidden = false; editStatus();
+    closeEditorDialog(); rerenderShop();
+    $("#shop").scrollIntoView({ behavior: "smooth" });
+  } catch (ex) {
+    err.textContent = "Couldn't reach the editor. Check your connection and try again."; err.hidden = false;
+  } finally { btn.disabled = false; btn.textContent = "Unlock editor"; }
+});
+$("#editSave").addEventListener("click", async () => {
+  if (!Editor.changed.size || Editor.busy) return;
+  Editor.busy = true; editStatus("Saving…");
+  const rows = CONFIG.products.filter(p => Editor.changed.has(p.id)).map(p => ({
+    name: p.name, price: edPrice(p), stock: p.stock == null ? "" : p.stock,
+    colors: Object.fromEntries(CONFIG.colors.map(c => [c.name, p.colors.includes(c.id) ? "Yes" : "No"]))
+  }));
+  try {
+    const r = await editorCall({ action: "save", password: Editor.pw, rows });
+    if (!r.ok) throw new Error(r.error || "save");
+    Editor.changed.clear(); Editor.busy = false;
+    editStatus(r.missing && r.missing.length ? "Saved, but these aren't in the sheet: " + r.missing.join(", ") : "Saved. The public site updates within about 5 minutes.");
+  } catch (ex) {
+    Editor.busy = false; editStatus("Couldn't save. Your changes are still here, try again.");
+  }
+});
+$("#editExit").addEventListener("click", () => {
+  if (Editor.changed.size && !confirm("You have unsaved changes. Exit anyway?")) return;
+  if (Editor.changed.size) { location.reload(); return; }
+  Editor.on = false; Editor.pw = ""; document.body.classList.remove("editing"); $("#editBar").hidden = true;
+  rerenderShop();
+});
 
 /* ---------- Boot ---------- */
 renderShop();

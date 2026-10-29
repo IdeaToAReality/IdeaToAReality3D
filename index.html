@@ -770,6 +770,7 @@ const CONFIG = {
        { code: "SWEET10", type: "percent", value: 10 }                       10% off
        { code: "FIVEOFF", type: "fixed", value: 5, expires: "2026-12-31" }   $5 off, optional expiry date */
   coupons: [],
+  notifyEmail: "ideatoareality3d@gmail.com", /* every custom order and support message is emailed here (sent through formsubmit.co) */
   phoneDisplay: "859-913-1032",
   phoneTel: "+18599131032",
   contactEmail: "", /* add your support email here once it exists, e.g. "hello@yourdomain.com" */
@@ -1226,7 +1227,7 @@ const newId = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : 
 /* Each visitor writes only to their own document, submissions/<their id>. Only editors and the owner can read them all. */
 async function saveSubmission(item) {
   await Store.init();
-  if (!Store.db || !Store.uid) return { ok: false, reason: "unavailable" };
+  if (!Store.db || !Store.uid) return emailSubmission(item);
   try {
     const ref = Store.db.doc("submissions/" + Store.uid);
     const snap = await ref.get();
@@ -1237,6 +1238,35 @@ async function saveSubmission(item) {
   } catch (err) {
     return { ok: false, reason: (err && err.code) || "error" };
   }
+}
+
+/* On the live site, orders and messages are emailed to CONFIG.notifyEmail. */
+async function emailSubmission(item) {
+  if (!CONFIG.notifyEmail) return { ok: false, reason: "unavailable" };
+  const f = { };
+  if (item.kind === "support") {
+    f["Type"] = "Support message"; f["Topic"] = item.topic; f["About"] = item.ref || "-"; f["Message"] = item.message;
+  } else {
+    f["Type"] = item.mode === "ship" ? "Order: ready to ship" : "Order: custom print";
+    if (item.product) f["Product"] = item.product;
+    if (item.desc) f["Idea"] = item.desc;
+    if (item.size) f["Size"] = item.size;
+    f["Color"] = item.color; f["Material"] = item.material;
+    if (item.quality) f["Quality"] = item.quality;
+    f["Quantity"] = String(item.qty);
+    f["Total"] = item.total != null ? money(item.total) : "Quote needed";
+    if (item.stl) f["STL file"] = item.stl.name + " (customer must send it separately)";
+  }
+  f["name"] = item.name; f["email"] = item.email;
+  f["_subject"] = (item.kind === "support" ? "Idea to a Reality: message from " : "Idea to a Reality: new order from ") + item.name;
+  f["_template"] = "table"; f["_captcha"] = "false";
+  try {
+    const res = await fetch("https://formsubmit.co/ajax/" + encodeURIComponent(CONFIG.notifyEmail), {
+      method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(f)
+    });
+    const data = await res.json().catch(() => ({}));
+    return res.ok && String(data.success) === "true" ? { ok: true } : { ok: false, reason: "email" };
+  } catch (err) { return { ok: false, reason: "network" }; }
 }
 
 const STL_MAX = 14 * 1024 * 1024;

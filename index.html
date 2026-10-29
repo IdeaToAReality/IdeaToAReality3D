@@ -253,6 +253,8 @@ input[type="file"].input { padding: .55rem .7rem; font-size: .875rem; }
 .pick b { display: block; font: 700 .9375rem/1.2 var(--font-display); }
 .pick small { font: 400 .75rem/1.3 var(--font-mono); color: var(--muted); }
 .pick input:checked + span { border-color: var(--select); box-shadow: 0 0 0 1px var(--select); background: var(--surface-2); }
+.pick input:disabled + span { opacity: .35; cursor: not-allowed; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
 .pick input:focus-visible + span { outline: 2px solid var(--select); outline-offset: 3px; }
 
 .stepper { display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: var(--r); overflow: hidden; }
@@ -811,6 +813,7 @@ const CONFIG = {
        { code: "SWEET10", type: "percent", value: 10 }                       10% off
        { code: "FIVEOFF", type: "fixed", value: 5, expires: "2026-12-31" }   $5 off, optional expiry date */
   coupons: [],
+  sheetUrl: "", /* Google Sheet published as CSV. When set, prices, stock and colors come from the sheet. */
   notifyEmail: "ideatoareality3d@gmail.com", /* every custom order and support message is emailed here (sent through formsubmit.co) */
   phoneDisplay: "859-913-1032",
   phoneTel: "+18599131032",
@@ -848,7 +851,9 @@ const CONFIG = {
   ]
 };
 
-if (CONFIG.testMode) CONFIG.products.forEach(p => { p.realPrice = p.price; p.price = CONFIG.testPrice; });
+const applyTestPrices = () => { if (CONFIG.testMode) CONFIG.products.forEach(p => { p.realPrice = p.price; p.price = CONFIG.testPrice; }); };
+applyTestPrices();
+const soldOut = p => p.stock === 0 || !p.colors.length;
 
 /* ---------- Helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -886,6 +891,7 @@ const SHAPES = {
   tray:    "M100 24L152 54V114L100 144L48 114V54Z" + "M100 42L136 63V105L100 126L64 105V63Z",
   vase:    "M84 28H116C116 46 142 66 142 96C142 122 128 134 120 134H80C72 134 58 122 58 96C58 66 84 46 84 28Z",
   cup:     "M60 40H140V124Q140 134 130 134H70Q60 134 60 124Z",
+  box:     "M48 56H152V132H48Z" + "M62 70H138V118H62Z",
   c4:      "M44 56H156V132H44Z" + "M58 68H142V92H58Z" + circle(72, 111, 7) + circle(100, 111, 7) + circle(128, 111, 7) + "M88 38H112V56H88Z",
   cone:    conePath(),
   dragon:  circle(18, 122, 7) + circle(38, 112, 11) + circle(62, 104, 11) + circle(86, 96, 12) + circle(111, 92, 12) + circle(135, 84, 11) + circle(157, 68, 10) + "M158 36L184 40L176 58L160 54Z",
@@ -919,14 +925,15 @@ const form = $("#orderForm");
 function renderShop() {
   const grid = $("#productGrid");
   CONFIG.products.forEach(p => {
-    let current = p.colors[0];
+    let current = p.colors[0] || CONFIG.colors[0].id;
     const card = el("article", "card");
     const media = el("div", "card-media");
     media.innerHTML = thumb(p.shape, by(CONFIG.colors, current).hex);
     const body = el("div", "card-body");
     const top = el("div", "card-top");
     top.append(el("h3", "", p.name), el("span", "price", money(p.price)));
-    const meta = el("p", "card-meta", [by(CONFIG.materials, p.material).name, p.size].filter(Boolean).join(" · "));
+    const out = soldOut(p), low = !out && p.stock != null && p.stock <= 3;
+    const meta = el("p", "card-meta", [by(CONFIG.materials, p.material).name, p.size, low ? `Only ${p.stock} left` : ""].filter(Boolean).join(" · "));
     const mini = el("div", "mini");
     mini.setAttribute("role", "group");
     mini.setAttribute("aria-label", `Color for ${p.name}`);
@@ -944,11 +951,12 @@ function renderShop() {
       });
       mini.append(b);
     });
-    const add = el("button", "btn btn-primary btn-block", "Add to cart");
+    const add = el("button", "btn btn-primary btn-block", out ? "Sold out" : "Add to cart");
     add.type = "button";
+    if (out) add.disabled = true;
     add.addEventListener("click", () => {
-      addToCart(p.id, current);
-      add.textContent = "Added to cart";
+      const ok = addToCart(p.id, current);
+      add.textContent = ok ? "Added to cart" : "No more in stock";
       setTimeout(() => { add.textContent = "Add to cart"; }, 1500);
     });
     body.append(top, meta, mini, add);
@@ -960,9 +968,9 @@ function renderShop() {
 /* ---------- Order form pickers ---------- */
 function renderPickers() {
   $("#productPick").innerHTML = CONFIG.products.map(p => `
-    <label class="pick"><input class="vh" type="radio" name="product" value="${p.id}">
+    <label class="pick"><input class="vh" type="radio" name="product" value="${p.id}"${soldOut(p) ? " disabled" : ""}>
       <span><span class="pthumb">${thumb(p.shape, "#9c9c93")}</span>
-      <span><b>${p.name}</b><small>${money(p.price)} · ${by(CONFIG.materials, p.material).name}</small></span></span>
+      <span><b>${p.name}</b><small>${soldOut(p) ? "Sold out" : money(p.price) + " · " + by(CONFIG.materials, p.material).name}</small></span></span>
     </label>`).join("");
 
   $("#colorPick").innerHTML = CONFIG.colors.map(c => `
@@ -986,7 +994,9 @@ function renderPickers() {
 /* ---------- Sync UI with state ---------- */
 function sync() {
   const ship = state.mode === "ship";
-  const p = by(CONFIG.products, state.product);
+  let p = by(CONFIG.products, state.product);
+  if (ship && soldOut(p)) { const a = CONFIG.products.find(x => !soldOut(x)); if (a) { state.product = a.id; p = a; } }
+  if (ship && p.stock != null && p.stock > 0 && state.qty > p.stock) { state.qty = p.stock; $("#qty").value = state.qty; }
   $$("[data-show]").forEach(e => { e.hidden = e.dataset.show !== state.mode; });
   if (ship) {
     if (!p.colors.includes(state.color)) state.color = p.colors[0];
@@ -1675,21 +1685,29 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CART_KEY = "itar-cart-v1";
 function loadCart() {
   try {
-    const raw = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-    Cart.lines = raw.filter(l => by(CONFIG.products, l.pid) && by(CONFIG.colors, l.color) && l.qty > 0)
-      .map(l => ({ pid: l.pid, color: l.color, qty: Math.min(99, l.qty | 0) }));
+    const raw = JSON.parse(localStorage.getItem(CART_KEY) || "[]"), left = {};
+    Cart.lines = raw.filter(l => { const p = by(CONFIG.products, l.pid); return p && by(CONFIG.colors, l.color) && p.colors.includes(l.color) && l.qty > 0 && !soldOut(p); })
+      .map(l => {
+        const p = by(CONFIG.products, l.pid);
+        if (!(l.pid in left)) left[l.pid] = p.stock == null ? 99 : p.stock;
+        const q = Math.min(99, l.qty | 0, left[l.pid]); left[l.pid] -= q;
+        return { pid: l.pid, color: l.color, qty: q };
+      }).filter(l => l.qty > 0);
   } catch (e) { Cart.lines = []; }
 }
+const stockLeft = pid => { const p = by(CONFIG.products, pid); return p.stock == null ? 99 : p.stock - Cart.lines.filter(x => x.pid === pid).reduce((n, x) => n + x.qty, 0); };
 function saveCart() { try { localStorage.setItem(CART_KEY, JSON.stringify(Cart.lines)); } catch (e) {} }
 const cartCount = () => Cart.lines.reduce((s, l) => s + l.qty, 0);
 const cartSubtotal = () => Cart.lines.reduce((s, l) => s + by(CONFIG.products, l.pid).price * l.qty, 0);
 function addToCart(pid, color) {
+  if (stockLeft(pid) <= 0) return false;
   const l = Cart.lines.find(x => x.pid === pid && x.color === color);
   if (l) l.qty = Math.min(99, l.qty + 1); else Cart.lines.push({ pid, color, qty: 1 });
   Cart.step = "cart"; saveCart(); renderCart();
+  return true;
 }
 function setQty(l, q) {
-  if (q < 1) Cart.lines = Cart.lines.filter(x => x !== l); else l.qty = Math.min(99, q);
+  if (q < 1) Cart.lines = Cart.lines.filter(x => x !== l); else l.qty = Math.min(q, 99, l.qty + Math.max(0, stockLeft(l.pid)));
   if (!Cart.lines.length) { Cart.step = "cart"; Cart.coupon = null; Cart.couponMsg = null; }
   saveCart(); renderCart();
 }
@@ -1886,10 +1904,75 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#dealW
 $("#testBar").hidden = !CONFIG.testMode;
 loadCart(); renderCart();
 
+/* ---------- Live product sheet: prices, stock and colors from a published Google Sheet ---------- */
+function parseCSV(t) {
+  const rows = []; let row = [], f = "", q = false;
+  t = t.replace(/^\uFEFF/, "");
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true;
+    else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && t[i + 1] === "\n") i++; row.push(f); f = ""; rows.push(row); row = []; }
+    else f += c;
+  }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+function sheetToProducts(text) {
+  const rows = parseCSV(text).filter(r => r.some(c => c.trim()));
+  if (rows.length < 2) return null;
+  const head = rows[0].map(h => h.trim().toLowerCase());
+  const col = n => head.indexOf(n.toLowerCase());
+  const iName = col("product"), iPrice = col("price");
+  if (iName < 0 || iPrice < 0) return null;
+  const iShape = col("shape"), iStock = col("stock"), iSize = col("size"), iShow = col("show on site");
+  const cols = CONFIG.colors.map(c => ({ id: c.id, i: col(c.name) }));
+  const hasColorCols = cols.some(c => c.i >= 0);
+  const yes = v => /^(yes|y|true|1|x|✓)$/i.test((v || "").trim());
+  const out = [], seen = {};
+  rows.slice(1).forEach(r => {
+    const name = (r[iName] || "").trim();
+    const price = parseFloat(String(r[iPrice] || "").replace(/[$,\s]/g, ""));
+    if (!name || !isFinite(price) || price < 0) return;
+    if (iShow >= 0 && /^(no|n|false|0|hide)$/i.test((r[iShow] || "").trim())) return;
+    let id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "item";
+    seen[id] = (seen[id] || 0) + 1; if (seen[id] > 1) id += "-" + seen[id];
+    const stockRaw = iStock >= 0 ? (r[iStock] || "").trim() : "";
+    const shape = iShape >= 0 ? (r[iShape] || "").trim().toLowerCase() : "";
+    out.push({
+      id, name, price: Math.round(price * 100) / 100, material: "pla", size: iSize >= 0 ? (r[iSize] || "").trim() : "",
+      shape: SHAPES[shape] ? shape : "box",
+      stock: stockRaw === "" ? null : Math.max(0, parseInt(stockRaw, 10) || 0),
+      colors: hasColorCols ? cols.filter(c => c.i >= 0 && yes(r[c.i])).map(c => c.id) : CONFIG.colors.map(c => c.id)
+    });
+  });
+  return out;
+}
+function applyProducts(list) {
+  CONFIG.products = list; applyTestPrices();
+  if (!by(CONFIG.products, state.product)) state.product = CONFIG.products[0].id;
+  loadCart(); saveCart();
+  $("#productGrid").replaceChildren();
+  renderShop(); renderPickers(); sync(); renderCart();
+}
+async function loadSheet() {
+  if (!CONFIG.sheetUrl) return;
+  try {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 8000);
+    const res = await fetch(CONFIG.sheetUrl + (CONFIG.sheetUrl.includes("?") ? "&" : "?") + "t=" + Math.floor(Date.now() / 60000), { signal: ctl.signal });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error("http " + res.status);
+    const list = sheetToProducts(await res.text());
+    if (list && list.length) applyProducts(list);
+  } catch (e) { /* keep the built-in product list */ }
+}
+
 /* ---------- Boot ---------- */
 renderShop();
 renderPickers();
 sync();
+loadSheet();
 </script>
 
 </body></html>

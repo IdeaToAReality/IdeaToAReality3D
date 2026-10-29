@@ -299,6 +299,7 @@ input[type="file"].input { padding: .55rem .7rem; font-size: .875rem; }
 .contact.call :focus-visible { outline-color: var(--on-accent); }
 .phone { font: 800 clamp(1.7rem, 4.4vw, 2.3rem)/1.05 var(--font-display); font-stretch: 108%; letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; user-select: all; }
 .phone.pending { font: 600 1.125rem/1.35 var(--font-body); letter-spacing: 0; color: var(--muted); user-select: auto; }
+#emailText:not(.pending) { font-size: clamp(1.05rem, 5vw, 1.45rem); letter-spacing: -.01em; overflow-wrap: anywhere; }
 .btns { display: flex; flex-wrap: wrap; gap: 10px; }
 .contact .hint { margin: 0; }
 .msg-form { display: flex; flex-direction: column; gap: 18px; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
@@ -637,6 +638,7 @@ html.lock { overflow: hidden; }
               <a class="btn btn-solid" id="callBtn" href="#support">Call now</a>
               <button class="btn btn-ghost" type="button" id="copyPhone">Copy number</button>
             </div>
+            <p class="hint"><strong>Call hours: 5 PM to 8 PM Eastern.</strong></p>
             <p class="hint">On a computer? Copy the number and dial from your phone.</p>
           </article>
 
@@ -773,7 +775,7 @@ const CONFIG = {
   notifyEmail: "ideatoareality3d@gmail.com", /* every custom order and support message is emailed here (sent through formsubmit.co) */
   phoneDisplay: "859-913-1032",
   phoneTel: "+18599131032",
-  contactEmail: "", /* add your support email here once it exists, e.g. "hello@yourdomain.com" */
+  contactEmail: "ideatoareality3d@gmail.com", /* shown in the Support section */
   currency: "$",
   colors: [
     { id: "white",  name: "White",      hex: "#f1f1ea" },

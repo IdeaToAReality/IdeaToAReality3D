@@ -1,0 +1,1750 @@
+<!doctype html><html><head><title>Idea to a Reality | 3D Printing</title><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..900&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky wordmark header, split hero (name + live layer-by-layer print on a build-plate grid),
+   ready-to-ship shop grid, three-step process, order form with a sticky summary. Dark-first, yellow only as fill. */
+:root {
+  --bg: #0f0f0d;
+  --surface: #171715;
+  --surface-2: #1f1f1c;
+  --media: #262623;
+  --line: #2b2b27;
+  --line-strong: #47473f;
+  --fg: #f4f4ee;
+  --muted: #a3a39a;
+  --accent: #ffd400;
+  --accent-hover: #ffe14d;
+  --accent-dim: #d9b400;
+  --on-accent: #0f0f0d;
+  --select: #ffd400;
+  --print-hi: #ecece5;
+  --print-mid: #9c9c93;
+  --print-lo: #4b4b45;
+  --btn-ink: #121210;
+  --btn-hi: #fbfbf8;
+  --btn-lo: #dcdcd5;
+  --btn-outline: #ffffff;
+  --err: #ff8a7a;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r: 6px;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4f4ef; --surface: #ffffff; --surface-2: #ebebe4; --media: #dcdcd3;
+    --line: #dadad1; --line-strong: #b4b4a9; --fg: #121210; --muted: #5d5d55;
+    --accent: #ffd400; --accent-hover: #ffe14d; --accent-dim: #d9b400; --on-accent: #121210;
+    --select: #121210; --print-hi: #8e8e86; --print-mid: #3b3b36; --print-lo: #1b1b18;
+    --btn-ink: #121210; --btn-hi: #ffffff; --btn-lo: #e6e6df; --btn-outline: #121210; --err: #b3261e;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f4f4ef; --surface: #ffffff; --surface-2: #ebebe4; --media: #dcdcd3;
+  --line: #dadad1; --line-strong: #b4b4a9; --fg: #121210; --muted: #5d5d55;
+  --accent: #ffd400; --accent-hover: #ffe14d; --accent-dim: #d9b400; --on-accent: #121210;
+  --select: #121210; --print-hi: #8e8e86; --print-mid: #3b3b36; --print-lo: #1b1b18;
+  --btn-ink: #121210; --btn-hi: #ffffff; --btn-lo: #e6e6df; --btn-outline: #121210; --err: #b3261e;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 76px); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 1rem/1.55 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+h1, h2, h3, p { margin: 0; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+
+.wrap {
+  max-width: 1160px; margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.mono { font-family: var(--font-mono); }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font: 500 .75rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+}
+.eyebrow::before { content: ""; width: 8px; height: 8px; background: var(--accent); flex: none; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: .65rem 1.15rem; border-radius: var(--r);
+  border: 1.5px solid transparent; font: 600 .9375rem/1 var(--font-body);
+  text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s, transform .15s;
+}
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: transparent; color: var(--fg); border-color: var(--line-strong); }
+.btn-ghost:hover { border-color: var(--fg); }
+.btn-lg { min-height: 52px; padding-inline: 1.5rem; font-size: 1rem; }
+.btn-block { width: 100%; }
+.btn:active { transform: translateY(1px); }
+
+/* Header */
+.site { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.bar { display: flex; align-items: center; gap: 24px; min-height: 64px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; min-width: 0; }
+.brand span { font: 800 1rem/1 var(--font-display); font-stretch: 112%; letter-spacing: -.01em; white-space: nowrap; }
+.mark { width: 28px; height: 28px; flex: none; }
+.mark rect { fill: var(--fg); }
+.mark rect.top { fill: var(--accent); }
+.site nav { display: flex; gap: 10px; }
+/* Outlined buttons with a bold, glossy matte white finish */
+.site nav a {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; min-height: 40px; padding: 0 1.05rem;
+  font: 800 .8125rem/1 var(--font-body); letter-spacing: .07em; text-transform: uppercase; text-decoration: none;
+  color: var(--btn-ink); border: 2px solid var(--btn-outline); border-radius: var(--r);
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.22) 49%, rgba(255,255,255,0) 50%),
+    linear-gradient(180deg, var(--btn-hi) 0%, var(--btn-lo) 100%);
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.10), 0 2px 0 rgba(0,0,0,.45);
+  transition: transform .15s, box-shadow .15s, filter .15s;
+}
+.site nav a:hover { transform: translateY(-1px); filter: brightness(1.04); box-shadow: inset 0 -3px 0 rgba(0,0,0,.10), 0 3px 0 rgba(0,0,0,.45); }
+.site nav a:active { transform: translateY(1px); box-shadow: inset 0 -2px 0 rgba(0,0,0,.12), 0 1px 0 rgba(0,0,0,.45); }
+@media (max-width: 720px) {
+  .bar { flex-wrap: wrap; gap: 10px 12px; padding-block: 10px; }
+  .brand span { font-size: .9375rem; }
+  .site nav { order: 3; width: 100%; overflow-x: auto; padding: 3px 3px 6px; margin-inline: -3px; scrollbar-width: none; }
+  .site nav::-webkit-scrollbar { display: none; }
+  html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 132px); }
+}
+@media (max-width: 360px) { .brand span { display: none; } }
+
+/* Hero */
+.hero { padding-block: clamp(40px, 7vw, 88px); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+@media (max-width: 860px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
+.hero-copy { display: flex; flex-direction: column; gap: 22px; align-items: flex-start; min-width: 0; }
+h1 { font: 800 clamp(2.9rem, 8.6vw, 6.2rem)/.92 var(--font-display); font-stretch: 112%; letter-spacing: -.03em; text-wrap: balance; }
+h1 .line { display: block; }
+h1 .to { font: 500 .3em/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: .55em 0 .6em; }
+h1 mark {
+  display: inline-block; padding: .02em .12em .06em; margin-left: -.04em; color: var(--on-accent);
+  background: repeating-linear-gradient(to bottom, var(--accent) 0 3px, var(--accent-dim) 3px 4px);
+}
+.lede { font-size: clamp(1.0625rem, 2vw, 1.25rem); line-height: 1.5; color: var(--muted); max-width: 34ch; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.printer {
+  margin: 0; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-width: 0;
+  background-color: var(--surface);
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px; background-position: -1px -1px;
+}
+.printer canvas { display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 600 / 640; }
+.readout {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; padding: 12px 16px;
+  border-top: 1px solid var(--line); background: var(--surface);
+  font: 500 .75rem/1.2 var(--font-mono); letter-spacing: .08em; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.readout b { color: var(--fg); font-weight: 500; }
+
+/* Sections */
+.section { padding-block: clamp(56px, 9vw, 104px); border-top: 1px solid var(--line); }
+.sec-head { display: flex; flex-direction: column; gap: 14px; margin-bottom: clamp(28px, 5vw, 48px); max-width: 640px; }
+h2 { font: 800 clamp(1.9rem, 4.6vw, 3rem)/1.02 var(--font-display); font-stretch: 108%; letter-spacing: -.02em; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 1.0625rem; max-width: 52ch; }
+
+/* Shop */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 20px; }
+.card { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; min-width: 0; }
+.card-media { background: var(--media); aspect-ratio: 5 / 4; display: grid; place-items: center; padding: 14px; }
+.thumb { width: 100%; height: 100%; max-width: 100%; display: block; }
+.card-body { display: flex; flex-direction: column; gap: 12px; padding: 16px; flex: 1; }
+.card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.card h3 { font: 700 1.0625rem/1.2 var(--font-display); font-stretch: 104%; }
+.price { font: 500 .9375rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.card-meta { font: 400 .75rem/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.mini { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 4px; }
+.mini button {
+  width: 28px; height: 28px; border-radius: 50%; padding: 0; cursor: pointer;
+  background: var(--c); border: 1.5px solid rgba(128,128,128,.55); box-shadow: 0 0 0 0 var(--select);
+}
+.mini button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--select); }
+.card .btn { margin-top: 4px; }
+
+/* Process */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line-strong); }
+.steps li { display: flex; flex-direction: column; gap: 12px; padding: 24px 24px 8px 0; min-width: 0; }
+.steps li + li { padding-left: 24px; border-left: 1px solid var(--line); }
+.step-n { font: 500 .8125rem/1 var(--font-mono); letter-spacing: .1em; color: var(--muted); }
+.steps h3 { font: 700 1.25rem/1.2 var(--font-display); font-stretch: 106%; }
+.steps p { color: var(--muted); max-width: 32ch; }
+@media (max-width: 820px) {
+  .steps { grid-template-columns: minmax(0, 1fr); }
+  .steps li, .steps li + li { padding: 20px 0; border-left: 0; }
+  .steps li + li { border-top: 1px solid var(--line); }
+}
+
+/* Order */
+.order-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 350px); gap: clamp(28px, 5vw, 64px); align-items: start; }
+@media (max-width: 900px) { .order-grid { grid-template-columns: minmax(0, 1fr); } }
+.fields { display: flex; flex-direction: column; gap: 34px; min-width: 0; }
+.group { display: flex; flex-direction: column; gap: 34px; min-width: 0; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+legend, .lbl { display: block; padding: 0; margin-bottom: 12px; font: 500 .75rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 560px) { .row2 { grid-template-columns: minmax(0, 1fr); } }
+.input {
+  width: 100%; background: var(--surface); color: var(--fg); border: 1.5px solid var(--line-strong);
+  border-radius: var(--r); padding: .75rem .9rem; font: inherit; min-height: 46px;
+}
+.input::placeholder { color: var(--muted); opacity: .8; }
+textarea.input { resize: vertical; min-height: 110px; }
+input[type="file"].input { padding: .55rem .7rem; font-size: .875rem; }
+.hint { margin-top: 8px; font-size: .8125rem; color: var(--muted); }
+
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1.5px solid var(--line-strong); border-radius: var(--r); overflow: hidden; max-width: 100%; }
+.seg label { position: relative; cursor: pointer; }
+.seg span { display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 46px; padding: .6rem 1.2rem; font-weight: 600; font-size: .9375rem; }
+.seg small { font: 400 .6875rem/1 var(--font-mono); letter-spacing: .05em; opacity: .8; }
+.seg input:checked + span { background: var(--select); color: var(--bg); }
+.seg input:focus-visible + span { outline: 2px solid var(--select); outline-offset: -4px; }
+.seg label + label span { border-left: 1.5px solid var(--line-strong); }
+
+.swatch-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.sw { position: relative; cursor: pointer; }
+.sw span {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: .4rem .95rem .4rem .5rem;
+  border: 1.5px solid var(--line-strong); border-radius: 999px; background: var(--surface); font-size: .9375rem;
+}
+.sw i { width: 26px; height: 26px; border-radius: 50%; background: var(--c); border: 1.5px solid rgba(128,128,128,.55); flex: none; }
+.sw input:checked + span { border-color: var(--select); box-shadow: 0 0 0 1px var(--select); }
+.sw input:focus-visible + span { outline: 2px solid var(--select); outline-offset: 3px; }
+.sw input:disabled + span { opacity: .35; cursor: not-allowed; }
+
+.mat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.mat { position: relative; cursor: pointer; min-width: 0; }
+.mat > span { display: flex; flex-direction: column; gap: 10px; height: 100%; padding: 14px; background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: var(--r); }
+.mat b { font: 700 1.0625rem/1 var(--font-display); font-stretch: 108%; }
+.mat em { font-style: normal; font-size: .875rem; color: var(--muted); line-height: 1.4; }
+.meters { display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; margin-top: auto; padding-top: 4px; font: 400 .6875rem/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); align-items: center; }
+.pips { display: inline-flex; gap: 3px; }
+.pips s { width: 14px; height: 6px; background: var(--line-strong); text-decoration: none; }
+.pips s.on { background: var(--fg); }
+.mat input:checked + span { border-color: var(--select); box-shadow: 0 0 0 1px var(--select); background: var(--surface-2); }
+.mat input:focus-visible + span { outline: 2px solid var(--select); outline-offset: 3px; }
+.mat input:disabled + span { opacity: .35; cursor: not-allowed; }
+
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 12px; }
+.pick { position: relative; cursor: pointer; min-width: 0; }
+.pick > span { display: flex; align-items: center; gap: 12px; padding: 8px 12px 8px 8px; background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: var(--r); height: 100%; }
+.pick .pthumb { width: 64px; height: 52px; background: var(--media); border-radius: 4px; flex: none; display: grid; place-items: center; padding: 3px; }
+.pick .pthumb svg { width: 100%; height: 100%; }
+.pick b { display: block; font: 700 .9375rem/1.2 var(--font-display); }
+.pick small { font: 400 .75rem/1.3 var(--font-mono); color: var(--muted); }
+.pick input:checked + span { border-color: var(--select); box-shadow: 0 0 0 1px var(--select); background: var(--surface-2); }
+.pick input:focus-visible + span { outline: 2px solid var(--select); outline-offset: 3px; }
+
+.stepper { display: inline-flex; border: 1.5px solid var(--line-strong); border-radius: var(--r); overflow: hidden; }
+.stepper button { width: 46px; min-height: 46px; background: var(--surface); color: var(--fg); border: 0; font: 500 1.25rem/1 var(--font-mono); cursor: pointer; }
+.stepper button:hover { background: var(--surface-2); }
+.stepper input { width: 64px; text-align: center; border: 0; border-inline: 1.5px solid var(--line-strong); background: var(--bg); color: var(--fg); font: 500 1rem/1 var(--font-mono); -moz-appearance: textfield; }
+.stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.summary {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; min-width: 0;
+  display: flex; flex-direction: column; gap: 16px;
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 84px);
+}
+@media (max-width: 900px) { .summary { position: static; } }
+.summary h3 { font: 500 .75rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.summary dl { margin: 0; display: flex; flex-direction: column; }
+.srow { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: .9375rem; }
+.srow dt { color: var(--muted); flex: none; }
+.srow dd { margin: 0; text-align: right; display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.srow dd.dim { color: var(--muted); }
+.srow i { width: 14px; height: 14px; border-radius: 50%; background: var(--c); border: 1.5px solid rgba(128,128,128,.55); flex: none; }
+.total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.total span { color: var(--muted); font-size: .9375rem; }
+.total strong { font: 800 1.375rem/1 var(--font-display); font-stretch: 108%; text-align: right; font-variant-numeric: tabular-nums; }
+.total strong.small { font: 500 .875rem/1.3 var(--font-mono); }
+.result { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line-strong); }
+.result pre { margin: 0; padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); font: 400 .75rem/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.note { font-size: .8125rem; color: var(--muted); }
+.note .mono { color: var(--fg); user-select: all; }
+
+/* Support */
+.support-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: clamp(24px, 4vw, 48px); align-items: start; }
+@media (max-width: 900px) { .support-grid { grid-template-columns: minmax(0, 1fr); } }
+.contact-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.contact { display: flex; flex-direction: column; gap: 16px; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
+.contact.call { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.contact.call .eyebrow { color: var(--on-accent); }
+.contact.call .eyebrow::before { background: var(--on-accent); }
+.contact.call .hint { color: var(--on-accent); opacity: .75; margin: 0; }
+.contact.call .btn-solid { background: var(--on-accent); color: var(--accent); }
+.contact.call .btn-solid:hover { opacity: .88; }
+.contact.call .btn-ghost { color: var(--on-accent); border-color: var(--on-accent); }
+.contact.call .btn-ghost:hover { background: rgba(0,0,0,.08); }
+.contact.call :focus-visible { outline-color: var(--on-accent); }
+.phone { font: 800 clamp(1.7rem, 4.4vw, 2.3rem)/1.05 var(--font-display); font-stretch: 108%; letter-spacing: -.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; user-select: all; }
+.phone.pending { font: 600 1.125rem/1.35 var(--font-body); letter-spacing: 0; color: var(--muted); user-select: auto; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.contact .hint { margin: 0; }
+.msg-form { display: flex; flex-direction: column; gap: 18px; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
+.msg-form h3 { font: 700 1.25rem/1.2 var(--font-display); font-stretch: 106%; }
+select.input { appearance: auto; cursor: pointer; }
+.faq { margin-top: clamp(36px, 6vw, 64px); border-top: 1px solid var(--line-strong); }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; cursor: pointer; font: 600 1.0625rem/1.3 var(--font-body); list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font: 500 1.25rem/1 var(--font-mono); color: var(--muted); flex: none; }
+.faq details[open] summary::after { content: "−"; }
+.faq p { padding: 0 0 18px; color: var(--muted); max-width: 62ch; }
+
+/* Cart */
+.testbar { padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); background: var(--accent); color: var(--on-accent); font: 600 .75rem/1.4 var(--font-mono); letter-spacing: .04em; text-align: center; }
+.cart-btn .count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font: 700 .75rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.cart-scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.6); }
+.cart {
+  position: fixed; z-index: 41; top: 0; right: 0; bottom: 0; width: min(440px, 100%);
+  display: flex; flex-direction: column; background: var(--bg); border-left: 1px solid var(--line-strong);
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.cart-head, .cart-body, .cart-foot { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.cart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 16px; border-bottom: 1px solid var(--line); }
+.cart-head h2 { font: 800 1.375rem/1 var(--font-display); font-stretch: 108%; letter-spacing: -.01em; }
+.cart-body { flex: 1; overflow-y: auto; padding-block: 8px 20px; display: flex; flex-direction: column; min-height: 0; }
+.cart-foot { display: flex; flex-direction: column; gap: 14px; padding-block: 16px; border-top: 1px solid var(--line-strong); background: var(--bg); }
+.cart-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding-block: 28px; color: var(--muted); }
+.cline { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.cline .cthumb { width: 64px; height: 52px; background: var(--media); border-radius: 4px; display: grid; place-items: center; padding: 3px; }
+.cline .cthumb svg { width: 100%; height: 100%; }
+.cline b { display: block; font: 700 1rem/1.2 var(--font-display); font-stretch: 104%; overflow-wrap: anywhere; }
+.cline .cmeta { margin-top: 4px; display: flex; align-items: center; gap: 8px; font: 400 .8125rem/1.3 var(--font-mono); color: var(--muted); }
+.cline .cmeta i { width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 1.5px solid rgba(128,128,128,.55); flex: none; }
+.crow { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.crow .stepper button { width: 40px; min-height: 40px; }
+.crow .stepper output { display: grid; place-items: center; min-width: 44px; border-inline: 1.5px solid var(--line-strong); background: var(--bg); font: 500 1rem/1 var(--font-mono); }
+.cprice { font: 500 .9375rem/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.link-btn { background: none; border: 0; padding: 8px 0; color: var(--muted); font: 500 .8125rem/1 var(--font-body); text-decoration: underline; cursor: pointer; }
+.link-btn:hover { color: var(--fg); }
+.trow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: .9375rem; }
+.trow span:first-child { color: var(--muted); }
+.trow .mono { font-variant-numeric: tabular-nums; text-align: right; }
+.trow.big { padding-top: 12px; border-top: 1px solid var(--line); }
+.trow.big span:first-child { color: var(--fg); font-weight: 600; }
+.trow.big strong { font: 800 1.25rem/1.1 var(--font-display); font-stretch: 108%; text-align: right; font-variant-numeric: tabular-nums; }
+.pay-title { font: 500 .75rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 20px 0 12px; }
+.pay-opt { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--surface-2); border: 1.5px solid var(--select); box-shadow: 0 0 0 1px var(--select); border-radius: var(--r); cursor: pointer; }
+.pay-opt input { width: 18px; height: 18px; accent-color: var(--select); flex: none; }
+.pay-opt b { display: block; font: 800 1.0625rem/1.2 var(--font-display); font-stretch: 108%; }
+.pay-opt small { display: block; margin-top: 2px; font-size: .8125rem; color: var(--muted); }
+.cart-note { font-size: .8125rem; color: var(--muted); }
+
+.deal-wrap { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.6); }
+.deal { width: min(460px, 100%); display: flex; flex-direction: column; gap: 16px; padding: 24px; background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--r); }
+.deal h2 { font-size: clamp(1.6rem, 5vw, 2rem); }
+.coupon { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.coupon .lbl { margin-bottom: 4px; }
+.coupon .row { display: flex; gap: 8px; }
+.coupon .row .input { flex: 1; min-width: 0; text-transform: uppercase; }
+.coupon .applied { display: flex; align-items: center; gap: 12px; }
+.coupon .hint { margin: 0; }
+.cmsg { font-size: .8125rem; margin: 0; }
+.cmsg.ok { color: var(--fg); }
+.cmsg.bad { color: var(--err); }
+
+/* Admin panel */
+.field-err { margin-top: 8px; font-size: .8125rem; color: var(--err); }
+html.lock { overflow: hidden; }
+.admin-fab {
+  position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px;
+  background: var(--surface); color: var(--fg); border: 1.5px solid var(--line-strong); border-radius: var(--r);
+  font: 600 .75rem/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0,0,0,.35);
+}
+.admin-fab:hover { border-color: var(--fg); }
+.admin-fab svg { width: 14px; height: 14px; flex: none; }
+.admin { position: fixed; inset: 0; z-index: 50; overflow-y: auto; background: var(--bg); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.admin-sheet {
+  max-width: 1000px; margin-inline: auto; padding-block: 24px 72px; display: flex; flex-direction: column; gap: 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.admin-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--line-strong); }
+.admin-head > div { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+#adminBody { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.a-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.a-stat { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.a-stat strong { font: 800 1.75rem/1 var(--font-display); font-stretch: 108%; font-variant-numeric: tabular-nums; }
+.a-stat span { font: 500 .75rem/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.a-bar { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { min-height: 40px; padding: 0 16px; background: transparent; color: var(--fg); border: 1.5px solid var(--line-strong); border-radius: 999px; font: 600 .875rem/1 var(--font-body); cursor: pointer; }
+.pill:hover { border-color: var(--fg); }
+.pill[aria-pressed="true"] { background: var(--select); color: var(--bg); border-color: var(--select); }
+.a-list { display: flex; flex-direction: column; gap: 14px; }
+.sub-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); min-width: 0; }
+.sub-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; padding: 5px 8px; border: 1px solid var(--line-strong); border-radius: 3px; font: 500 .6875rem/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.chip.new { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.chip.stl { color: var(--fg); }
+.sub-time { font: 400 .75rem/1 var(--font-mono); color: var(--muted); }
+.sub-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.sub-who b { font: 700 1.0625rem/1.2 var(--font-display); font-stretch: 104%; overflow-wrap: anywhere; }
+.sub-who span { font: 400 .875rem/1.3 var(--font-mono); color: var(--muted); overflow-wrap: anywhere; user-select: all; }
+.kv { display: grid; grid-template-columns: minmax(72px, 104px) minmax(0, 1fr); gap: 6px 16px; margin: 0; font-size: .9375rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.kv i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 1.5px solid rgba(128,128,128,.55); margin-right: 8px; vertical-align: -1px; }
+.sub-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-top: 4px; }
+.sub-actions .hint { margin: 0; }
+.btn-sm { min-height: 40px; padding: .5rem .9rem; font-size: .875rem; }
+.a-empty { padding: 32px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: var(--r); }
+.gate { max-width: 520px; display: flex; flex-direction: column; gap: 14px; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.gate h3 { font: 700 1.25rem/1.2 var(--font-display); font-stretch: 106%; }
+.gate p { color: var(--muted); }
+.cust { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.cust b { display: block; font: 700 1rem/1.2 var(--font-display); overflow-wrap: anywhere; }
+.cust span { display: block; margin-top: 4px; font: 400 .8125rem/1.4 var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+
+.quote { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; padding: 14px; border: 1px dashed var(--line-strong); border-radius: var(--r); min-width: 0; }
+.quote .lbl { margin-bottom: 8px; }
+.qfoot { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.qtotal { font: 500 .875rem/1.2 var(--font-mono); color: var(--muted); }
+.qtotal strong { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.receipt { display: flex; flex-direction: column; gap: 12px; padding: 14px; background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--r); min-width: 0; }
+.receipt pre { margin: 0; font: 400 .8125rem/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.receipt .hint { margin: 0; }
+@media (max-width: 420px) { .quote { grid-template-columns: minmax(0, 1fr); } }
+
+/* Footer */
+.foot { border-top: 1px solid var(--line); padding-block: 32px; }
+.foot .wrap { display: flex; flex-wrap: wrap; gap: 12px 32px; justify-content: space-between; align-items: center; }
+.foot p { font: 400 .75rem/1.4 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity=".22"/>
+      <stop offset=".4" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".26"/>
+    </linearGradient>
+    <pattern id="pLayers" width="200" height="3.4" patternUnits="userSpaceOnUse">
+      <rect width="200" height="1" y="2.4" fill="#000" fill-opacity=".17"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="testbar" id="testBar" hidden>Test mode: every item costs $0.01 so you can try PayPal. PayPal can't process $0.00.</div>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="Idea to a Reality, home">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect class="top" x="2" y="5" width="24" height="5"/><rect x="5" y="12" width="18" height="5"/><rect x="8" y="19" width="12" height="5"/></svg>
+      <span>Idea to a Reality</span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#shop">Ready to ship</a>
+      <a href="#process">How it works</a>
+      <a href="#order">Order</a>
+      <a href="#support">Support</a>
+    </nav>
+    <a class="btn btn-primary" href="#order">Make an Order</a>
+    <button class="btn btn-ghost cart-btn" id="cartBtn" type="button" aria-haspopup="dialog" aria-label="Open cart">Cart <span class="count" id="cartCount">0</span></button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Custom 3D printing</p>
+        <h1>
+          <span class="line">Idea</span>
+          <span class="line to">to a</span>
+          <span class="line"><mark>Reality</mark></span>
+        </h1>
+        <p class="lede">Send us an idea and choose your color and material. Or pick something that is already printed and ready to ship.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary btn-lg" href="#order">Make an Order</a>
+          <a class="btn btn-ghost btn-lg" href="#shop">Shop ready to ship</a>
+          <button class="btn btn-ghost btn-lg" id="dealBtn" type="button" aria-haspopup="dialog">Get a sweet deal</button>
+        </div>
+      </div>
+      <figure class="printer">
+        <canvas id="print" width="1200" height="1280" role="img" aria-label="A vase being 3D printed one layer at a time"></canvas>
+        <figcaption class="readout">
+          <span>LAYER <b id="layerNo">058</b> / 076</span>
+          <span>0.20 MM</span>
+          <span>PLA</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="shop">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Ready to ship</p>
+        <h2>Printed and waiting for you.</h2>
+        <p class="sub">Want it now? Choose a color and these go out as they are. No custom work needed.</p>
+      </div>
+      <div class="grid" id="productGrid"></div>
+    </div>
+  </section>
+
+  <section class="section" id="process">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Custom orders</p>
+        <h2>How a custom order works.</h2>
+      </div>
+      <ol class="steps">
+        <li><span class="step-n">01</span><h3>Tell us your idea</h3><p>Describe what you want, add a rough size, and attach a model file if you already have one.</p></li>
+        <li><span class="step-n">02</span><h3>Choose color and material</h3><p>Pick from our colors and filaments. Not sure which? PLA is a good start for display pieces.</p></li>
+        <li><span class="step-n">03</span><h3>We print and ship</h3><p>Your piece is printed layer by layer, checked, and sent your way.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="order">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Make an Order</p>
+        <h2>Tell us what you need.</h2>
+        <p class="sub">Go custom, or choose a ready-to-ship piece. Pick your color and material, then review your order.</p>
+      </div>
+
+      <form id="orderForm" class="order-grid" autocomplete="on">
+        <div class="fields">
+          <fieldset>
+            <legend>Order type</legend>
+            <div class="seg" role="radiogroup" aria-label="Order type">
+              <label><input class="vh" type="radio" name="mode" value="custom" checked><span>Custom print</span></label>
+              <label><input class="vh" type="radio" name="mode" value="ship"><span>Ready to ship</span></label>
+            </div>
+          </fieldset>
+
+          <div class="group" data-show="custom">
+            <div>
+              <label class="lbl" for="desc">Describe your idea</label>
+              <textarea class="input" id="desc" name="desc" rows="4" placeholder="A wall hook for my headphones, about 12 cm tall, with a flat back plate."></textarea>
+            </div>
+            <div class="row2">
+              <div>
+                <label class="lbl" for="size">Approximate size (optional)</label>
+                <input class="input" id="size" name="size" type="text" placeholder="e.g. 80 × 40 × 40 mm">
+              </div>
+              <div>
+                <label class="lbl" for="file">3D model file, STL only (optional)</label>
+                <input class="input" id="file" name="file" type="file" accept=".stl,model/stl,application/sla,application/vnd.ms-pki.stl">
+                <p class="hint">STL files only, up to 14 MB.</p>
+                <p class="field-err" id="fileErr" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+
+          <fieldset data-show="ship" hidden>
+            <legend>Choose a product</legend>
+            <div class="pick-grid" id="productPick" role="radiogroup" aria-label="Product"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Color</legend>
+            <div class="swatch-row" id="colorPick" role="radiogroup" aria-label="Color"></div>
+            <p class="hint" data-show="ship" hidden>Only the colors available for this product are selectable.</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Material</legend>
+            <div class="mat-grid" id="matPick" role="radiogroup" aria-label="Material"></div>
+            <p class="hint" data-show="ship" hidden>Ready-to-ship products come in the material they were printed with.</p>
+          </fieldset>
+
+          <fieldset data-show="custom">
+            <legend>Print quality</legend>
+            <div class="seg" id="qualityPick" role="radiogroup" aria-label="Print quality"></div>
+            <p class="hint">Layer height is how thick each printed layer is. Thinner layers give a smoother surface and take longer.</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Quantity</legend>
+            <div class="stepper">
+              <button type="button" data-step="-1" aria-label="Decrease quantity">−</button>
+              <input id="qty" name="qty" type="number" inputmode="numeric" min="1" max="99" value="1" aria-label="Quantity">
+              <button type="button" data-step="1" aria-label="Increase quantity">+</button>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Your details</legend>
+            <div class="row2">
+              <div>
+                <label class="lbl" for="name">Name</label>
+                <input class="input" id="name" name="name" type="text" autocomplete="name" required>
+              </div>
+              <div>
+                <label class="lbl" for="email">Email</label>
+                <input class="input" id="email" name="email" type="email" autocomplete="email" required>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <aside class="summary" aria-label="Order summary">
+          <h3>Your order</h3>
+          <dl id="sumList"></dl>
+          <div class="total"><span>Total</span><strong id="sumTotal"></strong></div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit">Place order</button>
+          <div class="result" id="result" hidden>
+            <p class="eyebrow" id="orderResultTitle">Order summary</p>
+            <pre id="resultText"></pre>
+            <button class="btn btn-ghost btn-block" type="button" id="copyBtn">Copy summary</button>
+            <p class="note" id="orderNote"></p>
+          </div>
+        </aside>
+      </form>
+    </div>
+  </section>
+  <section class="section" id="support">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Support</p>
+        <h2>Questions? Talk to a person.</h2>
+        <p class="sub">Call us, or send a message about an order, a custom idea, or anything else.</p>
+      </div>
+
+      <div class="support-grid">
+        <div class="contact-col">
+          <article class="contact call">
+            <p class="eyebrow">Call</p>
+            <p class="phone" id="phoneText"></p>
+            <div class="btns">
+              <a class="btn btn-solid" id="callBtn" href="#support">Call now</a>
+              <button class="btn btn-ghost" type="button" id="copyPhone">Copy number</button>
+            </div>
+            <p class="hint">On a computer? Copy the number and dial from your phone.</p>
+          </article>
+
+          <article class="contact">
+            <p class="eyebrow">Email</p>
+            <p class="phone" id="emailText"></p>
+            <div class="btns" id="emailBtns"></div>
+            <p class="hint" id="emailHint"></p>
+          </article>
+        </div>
+
+        <form class="msg-form" id="supportForm">
+          <h3>Send us a message</h3>
+          <div class="row2">
+            <div>
+              <label class="lbl" for="sName">Name</label>
+              <input class="input" id="sName" type="text" autocomplete="name" required>
+            </div>
+            <div>
+              <label class="lbl" for="sEmail">Your email</label>
+              <input class="input" id="sEmail" type="email" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label class="lbl" for="sTopic">Topic</label>
+              <select class="input" id="sTopic">
+                <option>Question about an order</option>
+                <option>Custom print help</option>
+                <option>Ready-to-ship product</option>
+                <option>Something else</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl" for="sRef">Order or product (optional)</label>
+              <input class="input" id="sRef" type="text" placeholder="e.g. Phone Stand">
+            </div>
+          </div>
+          <div>
+            <label class="lbl" for="sMsg">Message</label>
+            <textarea class="input" id="sMsg" rows="5" required placeholder="How can we help?"></textarea>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit">Send message</button>
+          <div class="result" id="sResult" hidden>
+            <p class="eyebrow" id="sResultTitle">Your message</p>
+            <pre id="sResultText"></pre>
+            <button class="btn btn-ghost btn-block" type="button" id="sCopy">Copy message</button>
+            <p class="note" id="sNote"></p>
+          </div>
+        </form>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>What file types can I send?</summary>
+          <p>STL files only, up to 14 MB. If you don't have a model yet, describe your idea in the order form and add a rough size.</p>
+        </details>
+        <details>
+          <summary>Which material should I choose?</summary>
+          <p>PLA suits display pieces and indoor use. PETG is tougher for everyday parts. ABS handles heat, and TPU stays flexible. Tell us what the piece is for and we can help you choose.</p>
+        </details>
+        <details>
+          <summary>Custom or ready to ship?</summary>
+          <p>Ready-to-ship pieces are already printed, so you only choose a color. Go custom when you need a different size, shape, or material.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Idea to a Reality, back to top">
+      <svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect class="top" x="2" y="5" width="24" height="5"/><rect x="5" y="12" width="18" height="5"/><rect x="8" y="19" width="12" height="5"/></svg>
+      <span>Idea to a Reality</span>
+    </a>
+    <p>Printed layer by layer.</p>
+  </div>
+</footer>
+
+<button class="admin-fab" id="adminFab" type="button" aria-haspopup="dialog">
+  <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+  Admin Panel
+</button>
+
+<div class="admin" id="adminPanel" role="dialog" aria-modal="true" aria-labelledby="adminTitle" hidden>
+  <div class="admin-sheet">
+    <div class="admin-head">
+      <div>
+        <p class="eyebrow">Admin Panel</p>
+        <h2 id="adminTitle">Submissions</h2>
+      </div>
+      <button class="btn btn-ghost" id="adminClose" type="button">Close</button>
+    </div>
+    <div id="adminBody"></div>
+  </div>
+</div>
+
+<div class="cart-scrim" id="cartScrim" hidden></div>
+<aside class="cart" id="cartPanel" role="dialog" aria-modal="true" aria-labelledby="cartTitle" hidden>
+  <div class="cart-head">
+    <h2 id="cartTitle">Your cart</h2>
+    <button class="btn btn-ghost btn-sm" id="cartClose" type="button">Close</button>
+  </div>
+  <div class="cart-body" id="cartBody"></div>
+  <div class="cart-foot" id="cartFoot"></div>
+</aside>
+
+<div class="deal-wrap" id="dealWrap" hidden>
+  <div class="deal" role="dialog" aria-modal="true" aria-labelledby="dealTitle">
+    <p class="eyebrow">Coupons</p>
+    <h2 id="dealTitle">Get a sweet deal</h2>
+    <p class="sub">Coupon codes are coming soon. When you have one, enter it at checkout in your cart. Each code works once per email.</p>
+    <div class="cta-row">
+      <button class="btn btn-primary" id="dealCart" type="button">Open my cart</button>
+      <button class="btn btn-ghost" id="dealClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* ---------- Shop configuration: edit these lists to change what customers can pick ---------- */
+const CONFIG = {
+  paypalEmail: "gamerboymicah12@gmail.com",
+  currencyCode: "USD",
+  testMode: true, /* true = every product costs testPrice so you can test PayPal. Set to false to go live. */
+  testPrice: 0.01, /* PayPal can't process a $0.00 payment, so 1 cent is the lowest test price */
+  shipping: null, /* flat shipping price in dollars once you decide it, e.g. 6.5. Leave null until then. */
+  /* Coupons: none yet. Add entries like these when you're ready. Each code works once per email.
+       { code: "SWEET10", type: "percent", value: 10 }                       10% off
+       { code: "FIVEOFF", type: "fixed", value: 5, expires: "2026-12-31" }   $5 off, optional expiry date */
+  coupons: [],
+  phoneDisplay: "859-913-1032",
+  phoneTel: "+18599131032",
+  contactEmail: "", /* add your support email here once it exists, e.g. "hello@yourdomain.com" */
+  currency: "$",
+  colors: [
+    { id: "black",    name: "Black",    hex: "#1b1b19" },
+    { id: "graphite", name: "Graphite", hex: "#55554f" },
+    { id: "silver",   name: "Silver",   hex: "#b9b9b1" },
+    { id: "white",    name: "White",    hex: "#f1f1ea" },
+    { id: "yellow",   name: "Yellow",   hex: "#ffd400" },
+    { id: "orange",   name: "Orange",   hex: "#ff7a1a" }
+  ],
+  materials: [
+    { id: "pla",  name: "PLA",  blurb: "Crisp detail and a smooth finish. Best for display pieces and indoor use.", strength: 3, heat: 1, flex: 1 },
+    { id: "petg", name: "PETG", blurb: "Tougher and more water resistant. A good all-rounder for everyday parts.", strength: 4, heat: 2, flex: 2 },
+    { id: "abs",  name: "ABS",  blurb: "Handles more heat and wear. Good for parts that get warm or rough use.", strength: 4, heat: 4, flex: 2 },
+    { id: "tpu",  name: "TPU",  blurb: "Flexible and rubbery. Good for grips, bumpers, and soft-touch parts.", strength: 3, heat: 2, flex: 5 }
+  ],
+  qualities: [
+    { id: "draft",    name: "Draft",    layer: "0.28 mm", note: "Fastest" },
+    { id: "standard", name: "Standard", layer: "0.20 mm", note: "Balanced" },
+    { id: "fine",     name: "Fine",     layer: "0.12 mm", note: "Smoothest" }
+  ],
+  /* Sample products. Replace with your own. `colors` lists what is in stock for each. */
+  products: [
+    { id: "phone-stand", name: "Phone Stand",       price: 12, material: "pla",  size: "110 mm wide", shape: "phone",   colors: ["black", "graphite", "white", "yellow"] },
+    { id: "planter",     name: "Desk Planter",      price: 16, material: "pla",  size: "90 mm tall",  shape: "planter", colors: ["white", "graphite", "yellow", "black"] },
+    { id: "hook",        name: "Headphone Hook",    price: 14, material: "petg", size: "120 mm deep", shape: "hook",    colors: ["black", "silver", "orange"] },
+    { id: "cable",       name: "Cable Keeper",      price: 8,  material: "tpu",  size: "100 mm wide", shape: "cable",   colors: ["black", "yellow", "orange"] },
+    { id: "gear",        name: "Gear Desk Toy",     price: 10, material: "pla",  size: "115 mm wide", shape: "gear",    colors: ["yellow", "silver", "black", "white"] },
+    { id: "tray",        name: "Hex Catch-All Tray",price: 18, material: "petg", size: "130 mm wide", shape: "tray",    colors: ["graphite", "black", "white"] },
+    { id: "vase",        name: "Bud Vase",          price: 15, material: "pla",  size: "105 mm tall", shape: "vase",    colors: ["white", "silver", "yellow"] },
+    { id: "cup",         name: "Pen Cup",           price: 11, material: "petg", size: "85 mm tall",  shape: "cup",     colors: ["black", "graphite", "orange", "white"] }
+  ]
+};
+
+if (CONFIG.testMode) CONFIG.products.forEach(p => { p.realPrice = p.price; p.price = CONFIG.testPrice; });
+
+/* ---------- Helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const by = (list, id) => list.find(x => x.id === id);
+const money = n => CONFIG.currency + n.toLocaleString("en-US", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
+const circle = (cx, cy, r) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
+
+function gearPath() {
+  const N = 10, cx = 100, cy = 84, ro = 58, ri = 46;
+  let d = "";
+  for (let k = 0; k < N; k++) {
+    const a = k * 2 * Math.PI / N, s = Math.PI / N;
+    [[a - s * .55, ri], [a - s * .3, ro], [a + s * .3, ro], [a + s * .55, ri]].forEach(([t, r], i) => {
+      d += (k === 0 && i === 0 ? "M" : "L") + (cx + r * Math.cos(t)).toFixed(1) + " " + (cy + r * Math.sin(t)).toFixed(1);
+    });
+  }
+  return d + "Z" + circle(cx, cy, 14);
+}
+const SHAPES = {
+  phone:   "M36 132V116H78L97 36H117L100 116H128V96H148V116H164V132Z",
+  planter: "M58 52H142V64H134L124 128Q123 136 114 136H86Q77 136 76 128L66 64H58Z",
+  hook:    "M54 26H76V108H132V88H152V130H54Z",
+  cable:   "M44 76Q44 62 58 62H142Q156 62 156 76V120Q156 132 144 132H56Q44 132 44 120Z" + circle(72, 98, 9) + circle(100, 98, 9) + circle(128, 98, 9),
+  gear:    gearPath(),
+  tray:    "M100 24L152 54V114L100 144L48 114V54Z" + "M100 42L136 63V105L100 126L64 105V63Z",
+  vase:    "M84 28H116C116 46 142 66 142 96C142 122 128 134 120 134H80C72 134 58 122 58 96C58 66 84 46 84 28Z",
+  cup:     "M60 40H140V124Q140 134 130 134H70Q60 134 60 124Z"
+};
+function thumb(shape, hex) {
+  const d = SHAPES[shape];
+  return `<svg viewBox="0 0 200 160" class="thumb" aria-hidden="true">
+    <ellipse cx="100" cy="142" rx="62" ry="6" fill="#000" fill-opacity=".28"/>
+    <path d="${d}" fill="${hex}" fill-rule="evenodd" stroke="rgba(255,255,255,.14)" stroke-width="1"/>
+    <path d="${d}" fill="url(#gShade)" fill-rule="evenodd"/>
+    <path d="${d}" fill="url(#pLayers)" fill-rule="evenodd"/>
+  </svg>`;
+}
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+/* ---------- State ---------- */
+const state = {
+  mode: "custom", product: CONFIG.products[0].id, color: "black", material: "pla",
+  quality: "standard", qty: 1, desc: "", size: "", file: "", stl: null, name: "", email: ""
+};
+const form = $("#orderForm");
+
+/* ---------- Shop ---------- */
+function renderShop() {
+  const grid = $("#productGrid");
+  CONFIG.products.forEach(p => {
+    let current = p.colors[0];
+    const card = el("article", "card");
+    const media = el("div", "card-media");
+    media.innerHTML = thumb(p.shape, by(CONFIG.colors, current).hex);
+    const body = el("div", "card-body");
+    const top = el("div", "card-top");
+    top.append(el("h3", "", p.name), el("span", "price", money(p.price)));
+    const meta = el("p", "card-meta", `${by(CONFIG.materials, p.material).name} · ${p.size}`);
+    const mini = el("div", "mini");
+    mini.setAttribute("role", "group");
+    mini.setAttribute("aria-label", `Color for ${p.name}`);
+    p.colors.forEach(cid => {
+      const c = by(CONFIG.colors, cid);
+      const b = el("button");
+      b.type = "button";
+      b.style.setProperty("--c", c.hex);
+      b.setAttribute("aria-label", c.name);
+      b.setAttribute("aria-pressed", cid === current ? "true" : "false");
+      b.addEventListener("click", () => {
+        current = cid;
+        $$("button", mini).forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+        media.innerHTML = thumb(p.shape, c.hex);
+      });
+      mini.append(b);
+    });
+    const add = el("button", "btn btn-primary btn-block", "Add to cart");
+    add.type = "button";
+    add.addEventListener("click", () => {
+      addToCart(p.id, current);
+      add.textContent = "Added to cart";
+      setTimeout(() => { add.textContent = "Add to cart"; }, 1500);
+    });
+    body.append(top, meta, mini, add);
+    card.append(media, body);
+    grid.append(card);
+  });
+}
+
+/* ---------- Order form pickers ---------- */
+function renderPickers() {
+  $("#productPick").innerHTML = CONFIG.products.map(p => `
+    <label class="pick"><input class="vh" type="radio" name="product" value="${p.id}">
+      <span><span class="pthumb">${thumb(p.shape, "#9c9c93")}</span>
+      <span><b>${p.name}</b><small>${money(p.price)} · ${by(CONFIG.materials, p.material).name}</small></span></span>
+    </label>`).join("");
+
+  $("#colorPick").innerHTML = CONFIG.colors.map(c => `
+    <label class="sw"><input class="vh" type="radio" name="color" value="${c.id}">
+      <span><i style="--c:${c.hex}"></i>${c.name}</span>
+    </label>`).join("");
+
+  const pips = n => `<span class="pips">${[1, 2, 3, 4, 5].map(i => `<s class="${i <= n ? "on" : ""}"></s>`).join("")}</span>`;
+  $("#matPick").innerHTML = CONFIG.materials.map(m => `
+    <label class="mat"><input class="vh" type="radio" name="material" value="${m.id}">
+      <span><b>${m.name}</b><em>${m.blurb}</em>
+      <span class="meters"><span>Strength</span>${pips(m.strength)}<span>Heat</span>${pips(m.heat)}<span>Flex</span>${pips(m.flex)}</span></span>
+    </label>`).join("");
+
+  $("#qualityPick").innerHTML = CONFIG.qualities.map(q => `
+    <label><input class="vh" type="radio" name="quality" value="${q.id}">
+      <span>${q.name}<small>${q.layer} · ${q.note}</small></span>
+    </label>`).join("");
+}
+
+/* ---------- Sync UI with state ---------- */
+function sync() {
+  const ship = state.mode === "ship";
+  const p = by(CONFIG.products, state.product);
+  $$("[data-show]").forEach(e => { e.hidden = e.dataset.show !== state.mode; });
+  if (ship) {
+    if (!p.colors.includes(state.color)) state.color = p.colors[0];
+    state.material = p.material;
+  }
+  $$("input[name=mode]").forEach(i => { i.checked = i.value === state.mode; });
+  $$("input[name=product]").forEach(i => { i.checked = i.value === state.product; });
+  $$("input[name=color]").forEach(i => { i.checked = i.value === state.color; i.disabled = ship && !p.colors.includes(i.value); });
+  $$("input[name=material]").forEach(i => { i.checked = i.value === state.material; i.disabled = ship && i.value !== p.material; });
+  $$("input[name=quality]").forEach(i => { i.checked = i.value === state.quality; });
+  $("#desc").required = !ship;
+  renderSummary();
+}
+
+function summaryRows() {
+  const ship = state.mode === "ship";
+  const p = by(CONFIG.products, state.product);
+  const c = by(CONFIG.colors, state.color);
+  const m = by(CONFIG.materials, state.material);
+  const q = by(CONFIG.qualities, state.quality);
+  const rows = [["Type", ship ? "Ready to ship" : "Custom print"]];
+  if (ship) rows.push(["Product", p.name]);
+  else rows.push(["Idea", state.desc.trim() ? (state.desc.trim().length > 60 ? state.desc.trim().slice(0, 57) + "…" : state.desc.trim()) : "Add a description", !state.desc.trim()]);
+  rows.push(["Color", c.name, false, c.hex], ["Material", m.name]);
+  if (!ship) rows.push(["Quality", `${q.name} · ${q.layer}`]);
+  rows.push(["Quantity", String(state.qty)]);
+  return rows;
+}
+function renderSummary() {
+  const dl = $("#sumList");
+  dl.replaceChildren();
+  summaryRows().forEach(([k, v, dim, hex]) => {
+    const row = el("div", "srow");
+    const dt = el("dt", "", k);
+    const dd = el("dd", dim ? "dim" : "");
+    if (hex) { const i = document.createElement("i"); i.style.setProperty("--c", hex); dd.append(i); }
+    dd.append(document.createTextNode(v));
+    row.append(dt, dd);
+    dl.append(row);
+  });
+  const total = $("#sumTotal");
+  if (state.mode === "ship") {
+    total.className = "";
+    total.textContent = money(by(CONFIG.products, state.product).price * state.qty);
+  } else {
+    total.className = "small";
+    total.textContent = "Quoted after review";
+  }
+}
+
+/* ---------- Events ---------- */
+function hideResult() { $("#result").hidden = true; }
+form.addEventListener("change", e => {
+  const t = e.target;
+  if (t.type === "radio" && t.name in state) state[t.name] = t.value;
+  if (t.id === "file") { handleFile(t); return; }
+  if (t.id === "qty") { state.qty = Math.min(99, Math.max(1, parseInt(t.value, 10) || 1)); t.value = state.qty; }
+  sync(); hideResult();
+});
+form.addEventListener("input", e => {
+  const t = e.target;
+  if (t.id === "desc") state.desc = t.value;
+  else if (t.id === "size") state.size = t.value;
+  else if (t.id === "name") state.name = t.value;
+  else if (t.id === "email") state.email = t.value;
+  else if (t.id === "qty") state.qty = Math.min(99, Math.max(1, parseInt(t.value, 10) || 1));
+  else return;
+  renderSummary(); hideResult();
+});
+$$("[data-step]").forEach(b => b.addEventListener("click", () => {
+  state.qty = Math.min(99, Math.max(1, state.qty + parseInt(b.dataset.step, 10)));
+  $("#qty").value = state.qty;
+  sync(); hideResult();
+}));
+
+function summaryText(uploaded) {
+  const ship = state.mode === "ship";
+  const p = by(CONFIG.products, state.product);
+  const lines = ["IDEA TO A REALITY: ORDER", "", `Type: ${ship ? "Ready to ship" : "Custom print"}`];
+  if (ship) lines.push(`Product: ${p.name}`);
+  else {
+    lines.push(`Idea: ${state.desc.trim()}`);
+    if (state.size.trim()) lines.push(`Size: ${state.size.trim()}`);
+    if (state.file) lines.push(`Model file: ${state.file}` + (uploaded ? " (uploaded)" : " (STL, attach it when you send this)"));
+  }
+  lines.push(`Color: ${by(CONFIG.colors, state.color).name}`, `Material: ${by(CONFIG.materials, state.material).name}`);
+  if (!ship) { const q = by(CONFIG.qualities, state.quality); lines.push(`Quality: ${q.name} (${q.layer})`); }
+  lines.push(`Quantity: ${state.qty}`, `Total: ${ship ? money(p.price * state.qty) : "Quoted after review"}`, "", `Name: ${state.name.trim()}`, `Email: ${state.email.trim()}`);
+  return lines.join("\n");
+}
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!form.reportValidity()) return;
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = "Sending…";
+  try {
+    const ship = state.mode === "ship";
+    let stl = null, uploadNote = "";
+    if (!ship && state.stl) {
+      stl = { name: state.stl.name, bytes: state.stl.size, assetId: null };
+      try { stl.assetId = await uploadStl(state.stl); } catch (err) { stl.assetId = null; }
+      if (!stl.assetId) uploadNote = "Your STL file could not be uploaded from this page, so please send it to us with your order.";
+    }
+    const res = await saveSubmission(orderItem(stl));
+    $("#orderResultTitle").textContent = res.ok ? "Order received" : "Order summary";
+    $("#resultText").textContent = summaryText(!!(stl && stl.assetId));
+    const first = res.ok
+      ? `Thanks, ${state.name.trim()}. We'll review your order and reply to ${state.email.trim()}.`
+      : "Online ordering isn't switched on for this visit. " + (CONFIG.contactEmail
+          ? `Copy this summary and send it to ${CONFIG.contactEmail} to place your order.`
+          : `Copy this summary and call ${CONFIG.phoneDisplay} to place your order.`);
+    $("#orderNote").textContent = [first, uploadNote].filter(Boolean).join(" ");
+    $("#copyBtn").textContent = "Copy summary";
+    $("#result").hidden = false;
+    $("#result").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  } finally {
+    btn.disabled = false; btn.textContent = "Place order";
+  }
+});
+$("#copyBtn").addEventListener("click", () => {
+  const btn = $("#copyBtn"), pre = $("#resultText");
+  const fallback = () => {
+    const r = document.createRange(); r.selectNodeContents(pre);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = "Selected, press copy";
+  };
+  try {
+    navigator.clipboard.writeText(pre.textContent).then(() => {
+      btn.textContent = "Copied";
+      setTimeout(() => { btn.textContent = "Copy summary"; }, 2000);
+    }, fallback);
+  } catch (err) { fallback(); }
+});
+
+/* ---------- Hero: a vase printing layer by layer ---------- */
+(function () {
+  const cv = $("#print"), ctx = cv.getContext("2d");
+  const W = 600, H = 640, LAYERS = 76, cx = W / 2, baseY = H - 120, totalH = 350, lh = totalH / LAYERS;
+  const label = $("#layerNo");
+  ctx.scale(2, 2);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const prof = t => 1.25 * (60 + 64 * Math.sin(Math.PI * Math.pow(t, .8)) + 20 * Math.pow(t, 4));
+  let pal = readPal();
+  function readPal() {
+    const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+    return { hi: g("--print-hi"), mid: g("--print-mid"), lo: g("--print-lo"), acc: g("--accent"), bed: g("--line-strong"), fg: g("--fg") };
+  }
+  function draw(done, ang, parked, alpha) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.ellipse(cx, baseY + 10, 215, 56, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(128,128,128,.10)"; ctx.fill();
+    ctx.strokeStyle = pal.bed; ctx.lineWidth = 2; ctx.stroke();
+    ctx.globalAlpha = alpha;
+    const grad = ctx.createLinearGradient(cx - 170, 0, cx + 170, 0);
+    grad.addColorStop(0, pal.lo); grad.addColorStop(.35, pal.hi); grad.addColorStop(.7, pal.mid); grad.addColorStop(1, pal.lo);
+    for (let i = 0; i < done; i++) {
+      const rx = prof(i / (LAYERS - 1)), ry = rx * .26, y = baseY - i * lh;
+      ctx.beginPath(); ctx.ellipse(cx, y, rx, ry, 0, 0, Math.PI * 2); ctx.fillStyle = grad; ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx, y, rx, ry, 0, 0, Math.PI); ctx.strokeStyle = "rgba(0,0,0,.30)"; ctx.lineWidth = 1; ctx.stroke();
+    }
+    if (done < 1) return;
+    const i = done - 1, rx = prof(i / (LAYERS - 1)), ry = rx * .26, y = baseY - i * lh;
+    if (!parked) {
+      ctx.beginPath(); ctx.ellipse(cx, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = pal.acc; ctx.lineWidth = 2.5; ctx.stroke();
+    }
+    const px = cx + rx * Math.cos(ang), lift = parked ? 26 : 0, py = (parked ? y + ry : y + ry * Math.sin(ang)) - lift;
+    ctx.strokeStyle = pal.mid; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(28, py - 116); ctx.lineTo(W - 28, py - 116); ctx.stroke();
+    ctx.fillStyle = pal.mid; ctx.fillRect(px - 3, py - 116, 6, 46);
+    ctx.fillStyle = pal.hi; ctx.fillRect(px - 17, py - 74, 34, 34);
+    ctx.fillStyle = pal.acc; ctx.beginPath(); ctx.moveTo(px - 9, py - 40); ctx.lineTo(px + 9, py - 40); ctx.lineTo(px, py - 4); ctx.closePath(); ctx.fill();
+  }
+  const pad = n => String(n).padStart(3, "0");
+  if (reduce) {
+    draw(LAYERS, Math.PI / 2, true, 1); label.textContent = pad(LAYERS);
+    const redraw = () => { pal = readPal(); draw(LAYERS, Math.PI / 2, true, 1); };
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
+    new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return;
+  }
+  const PRINT = 8000, HOLD = 3200, FADE = 700, CYCLE = PRINT + HOLD + FADE;
+  const t0 = performance.now() - PRINT * .8;
+  let lastN = -1;
+  const refresh = () => { pal = readPal(); };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", refresh);
+  new MutationObserver(refresh).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  function frame(now) {
+    const t = (now - t0) % CYCLE;
+    let n, parked = false, alpha = 1;
+    if (t < PRINT) n = Math.max(1, Math.floor(t / PRINT * LAYERS) + 1);
+    else { n = LAYERS; parked = true; if (t > PRINT + HOLD) alpha = 1 - (t - PRINT - HOLD) / FADE; }
+    draw(n, now / 170, parked, alpha);
+    if (n !== lastN) { label.textContent = pad(n); lastN = n; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ---------- Support ---------- */
+function copyWith(btn, text, idle, selectEl) {
+  const ok = () => { btn.textContent = "Copied"; setTimeout(() => { btn.textContent = idle; }, 2000); };
+  const fallback = () => {
+    if (selectEl) { const r = document.createRange(); r.selectNodeContents(selectEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    btn.textContent = "Selected, press copy";
+  };
+  try { navigator.clipboard.writeText(text).then(ok, fallback); } catch (err) { fallback(); }
+}
+(function () {
+  const phone = $("#phoneText");
+  phone.textContent = CONFIG.phoneDisplay;
+  $("#callBtn").href = "tel:" + CONFIG.phoneTel;
+  $("#copyPhone").addEventListener("click", e => copyWith(e.currentTarget, CONFIG.phoneDisplay, "Copy number", phone));
+
+  const emailText = $("#emailText"), btns = $("#emailBtns"), hint = $("#emailHint");
+  if (CONFIG.contactEmail) {
+    emailText.textContent = CONFIG.contactEmail;
+    const mail = el("a", "btn btn-primary", "Write an email");
+    mail.href = "mailto:" + CONFIG.contactEmail;
+    const copy = el("button", "btn btn-ghost", "Copy address");
+    copy.type = "button";
+    copy.addEventListener("click", () => copyWith(copy, CONFIG.contactEmail, "Copy address", emailText));
+    btns.append(mail, copy);
+    hint.textContent = "If the email button does nothing, copy the address and use your mail app.";
+  } else {
+    emailText.classList.add("pending");
+    emailText.textContent = "Our email address is coming soon.";
+    hint.textContent = "For now, call us or use the message form. You can copy your message and send it once email is up.";
+  }
+
+  const f = $("#supportForm"), res = $("#sResult"), pre = $("#sResultText");
+  f.addEventListener("input", () => { res.hidden = true; });
+  f.addEventListener("submit", async e => {
+    e.preventDefault();
+    if (!f.reportValidity()) return;
+    const btn = f.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = "Sending…";
+    try {
+      const v = id => $(id).value.trim();
+      const saved = await saveSubmission({
+        id: newId(), kind: "support", createdAt: new Date().toISOString(),
+        topic: $("#sTopic").value, ref: v("#sRef") || null, message: v("#sMsg"), name: v("#sName"), email: v("#sEmail")
+      });
+      const lines = ["IDEA TO A REALITY: SUPPORT MESSAGE", "", `Topic: ${$("#sTopic").value}`];
+      if (v("#sRef")) lines.push(`Order or product: ${v("#sRef")}`);
+      lines.push("", v("#sMsg"), "", `Name: ${v("#sName")}`, `Email: ${v("#sEmail")}`);
+      pre.textContent = lines.join("\n");
+      $("#sResultTitle").textContent = saved.ok ? "Message sent" : "Your message";
+      $("#sCopy").textContent = "Copy message";
+      $("#sNote").textContent = saved.ok
+        ? `Thanks, ${v("#sName")}. We'll reply to ${v("#sEmail")}. You can also call ${CONFIG.phoneDisplay}.`
+        : (CONFIG.contactEmail
+            ? `Messages can't be sent from this page for this visit. Copy this and send it to ${CONFIG.contactEmail}, or call ${CONFIG.phoneDisplay}.`
+            : `Messages can't be sent from this page for this visit. Copy this and send it once our email is ready, or call ${CONFIG.phoneDisplay} now.`);
+      res.hidden = false;
+      res.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    } finally {
+      btn.disabled = false; btn.textContent = "Send message";
+    }
+  });
+  $("#sCopy").addEventListener("click", e => copyWith(e.currentTarget, pre.textContent, "Copy message", pre));
+})();
+
+/* ---------- Saving submissions and STL files ---------- */
+const useCap = n => (window.claude && window.claude.use ? window.claude.use(n) : Promise.resolve(null));
+const Store = {
+  db: null, assets: null, user: null, uid: null, ready: null,
+  init() {
+    if (!this.ready) this.ready = (async () => {
+      try {
+        const [db, user, assets] = await Promise.all([useCap("db"), useCap("user"), useCap("assets")]);
+        this.db = db; this.user = user; this.assets = assets;
+        this.uid = user ? await user.id() : null;
+      } catch (err) { /* stay in copy-only mode */ }
+    })();
+    return this.ready;
+  }
+};
+const newId = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+
+/* Each visitor writes only to their own document, submissions/<their id>. Only editors and the owner can read them all. */
+async function saveSubmission(item) {
+  await Store.init();
+  if (!Store.db || !Store.uid) return { ok: false, reason: "unavailable" };
+  try {
+    const ref = Store.db.doc("submissions/" + Store.uid);
+    const snap = await ref.get();
+    const items = snap.exists ? (snap.data().items || []) : [];
+    if (items.length >= 60) return { ok: false, reason: "full" };
+    await ref.set({ items: items.concat([item]), updatedAt: item.createdAt });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: (err && err.code) || "error" };
+  }
+}
+
+const STL_MAX = 14 * 1024 * 1024;
+async function checkStl(file) {
+  if (!/\.stl$/i.test(file.name)) return "Only STL files (.stl) are accepted.";
+  if (file.size < 84) return "That file is too small to be a valid STL.";
+  if (file.size > STL_MAX) return "That STL is over 14 MB. Send a smaller file or contact us.";
+  const head = new Uint8Array(await file.slice(0, 84).arrayBuffer());
+  const tris = new DataView(head.buffer).getUint32(80, true);
+  const expected = 84 + 50 * tris;
+  if (tris > 0 && file.size >= expected && file.size <= expected + 512) return "";
+  const text = await file.slice(0, 4096).text();
+  if (/^\s*solid\b/i.test(text) && /facet\s+normal|endsolid/i.test(text)) return "";
+  return "That file doesn't look like a valid STL. Export it again as STL and try again.";
+}
+async function handleFile(input) {
+  const err = $("#fileErr"), f = input.files[0];
+  state.stl = null; state.file = ""; err.textContent = ""; err.hidden = true;
+  if (f) {
+    const msg = await checkStl(f);
+    if (msg) { input.value = ""; err.textContent = msg; err.hidden = false; }
+    else { state.stl = f; state.file = f.name; }
+  }
+  sync(); hideResult();
+}
+function toBase64(buf) {
+  const bytes = new Uint8Array(buf); let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function fromBase64(b64) {
+  const s = atob(b64.replace(/\s+/g, "")), out = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+  return out;
+}
+/* The upload store has no STL type, so the file is kept as base64 text and turned back into an STL on download. */
+async function uploadStl(file) {
+  await Store.init();
+  if (!Store.assets) return null;
+  const res = await Store.assets.upload(new Blob([toBase64(await file.arrayBuffer())], { type: "text/plain" }), { type: "text/plain" });
+  return res.id;
+}
+function orderItem(stl) {
+  const ship = state.mode === "ship";
+  const p = by(CONFIG.products, state.product), c = by(CONFIG.colors, state.color);
+  return {
+    id: newId(), kind: "order", createdAt: new Date().toISOString(), mode: ship ? "ship" : "custom",
+    product: ship ? p.name : null, desc: ship ? null : state.desc.trim(), size: ship ? null : (state.size.trim() || null),
+    color: c.name, colorHex: c.hex, material: by(CONFIG.materials, state.material).name,
+    quality: ship ? null : by(CONFIG.qualities, state.quality).name, qty: state.qty,
+    total: ship ? p.price * state.qty : null, name: state.name.trim(), email: state.email.trim(), stl
+  };
+}
+
+/* ---------- Admin panel ---------- */
+const Admin = { gate: "", started: false, subs: [], states: {}, tab: "inbox", kind: "all", status: "new", drafts: {}, receiptFor: null };
+const moneyX = n => CONFIG.currency + Number(n).toFixed(2);
+const parseMoney = s => { const v = parseFloat(s); return s !== "" && isFinite(v) && v >= 0 ? Math.round(v * 100) / 100 : null; };
+async function saveAdmin(it, patch) {
+  await Store.db.doc("adminState/" + it.id).set(Object.assign({}, Admin.states[it.id] || {}, patch, { updatedAt: new Date().toISOString() }));
+}
+function receiptText(it, st) {
+  const total = st.price + st.shipping;
+  const lines = ["IDEA TO A REALITY: RECEIPT", `Receipt #${String(it.id).slice(0, 8).toUpperCase()}`, `Order date: ${fmtTime(it.createdAt)}`, "", `For: ${it.name}`, ""];
+  if (it.mode === "ship") lines.push(`Item: ${it.product}`);
+  else {
+    lines.push(`Custom print: ${it.desc}`);
+    if (it.size) lines.push(`Size: ${it.size}`);
+    if (it.stl) lines.push(`STL file: ${it.stl.name}`);
+  }
+  lines.push(`Color: ${it.color}`, `Material: ${it.material}`);
+  if (it.quality) lines.push(`Quality: ${it.quality}`);
+  lines.push(`Quantity: ${it.qty}`, "", `Price: ${moneyX(st.price)}`, `Shipping: ${moneyX(st.shipping)}`, `Total: ${moneyX(total)}`, "",
+    "Thank you for your order!", `Questions? Call ${CONFIG.phoneDisplay}` + (CONFIG.contactEmail ? ` or email ${CONFIG.contactEmail}.` : "."));
+  return lines.join("\n");
+}
+const fmtTime = iso => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); };
+const fmtSize = n => n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+const safeName = n => String(n || "model.stl").replace(/[^\w.\- ]+/g, "_").slice(0, 120);
+const isOpenItem = it => (Admin.states[it.id] || {}).status !== "done";
+
+function pills(opts, cur, pick, label) {
+  const wrap = el("div", "pills");
+  wrap.setAttribute("role", "group"); wrap.setAttribute("aria-label", label);
+  opts.forEach(([val, text]) => {
+    const b = el("button", "pill", text);
+    b.type = "button"; b.setAttribute("aria-pressed", val === cur ? "true" : "false");
+    b.addEventListener("click", () => { pick(val); renderAdmin(); });
+    wrap.append(b);
+  });
+  return wrap;
+}
+function showGate(title, text) {
+  const body = $("#adminBody"); body.replaceChildren();
+  const g = el("div", "gate"); g.append(el("h3", "", title), el("p", "", text)); body.append(g);
+}
+
+async function downloadStl(it, btn) {
+  const label = btn.textContent; let msg = label;
+  btn.disabled = true; btn.textContent = "Preparing…";
+  try {
+    const dl = await useCap("downloads");
+    if (!dl || typeof JSZip === "undefined") throw new Error("unavailable");
+    const res = await fetch("/_blob/" + it.stl.assetId);
+    if (!res.ok) throw new Error("fetch");
+    const name = safeName(it.stl.name), zip = new JSZip();
+    zip.file(name, fromBase64(await res.text()));
+    await dl.save({ filename: name.replace(/\.stl$/i, "") + ".zip", data: await zip.generateAsync({ type: "blob" }) });
+    msg = "Saved";
+  } catch (e) {
+    msg = e && e.code === "declined" ? label : "Couldn't download";
+  }
+  btn.textContent = msg;
+  setTimeout(() => { btn.textContent = label; btn.disabled = false; }, 2200);
+}
+
+function subCard(it) {
+  const open = isOpenItem(it);
+  const card = el("article", "sub-card");
+  const top = el("div", "sub-top"), chips = el("div", "chips");
+  chips.append(el("span", "chip" + (open ? " new" : ""), open ? "New" : "Done"));
+  chips.append(el("span", "chip", it.kind === "support" ? "Support" : it.mode === "ship" ? "Order · Ready to ship" : "Order · Custom"));
+  if (it.stl) chips.append(el("span", "chip stl", "STL"));
+  top.append(chips, el("span", "sub-time", fmtTime(it.createdAt)));
+  const who = el("div", "sub-who");
+  who.append(el("b", "", it.name || "No name"), el("span", "", it.email || ""));
+  const kv = el("dl", "kv");
+  const add = (k, v, hex) => {
+    if (v == null || v === "") return;
+    const dd = el("dd");
+    if (hex) { const i = document.createElement("i"); i.style.setProperty("--c", hex); dd.append(i); }
+    dd.append(document.createTextNode(String(v)));
+    kv.append(el("dt", "", k), dd);
+  };
+  if (it.kind === "support") { add("Topic", it.topic); add("About", it.ref); add("Message", it.message); }
+  else {
+    add("Product", it.product); add("Idea", it.desc); add("Size", it.size);
+    add("Color", it.color, it.colorHex); add("Material", it.material); add("Quality", it.quality);
+    add("Quantity", it.qty); add("Total", it.total != null ? money(it.total) : "Quote needed");
+    if (it.stl) add("STL file", `${it.stl.name} · ${fmtSize(it.stl.bytes)}`);
+  }
+  const acts = el("div", "sub-actions");
+  if (it.stl && it.stl.assetId) {
+    const b = el("button", "btn btn-primary btn-sm", "Download STL");
+    b.type = "button"; b.addEventListener("click", () => downloadStl(it, b)); acts.append(b);
+  } else if (it.stl) {
+    acts.append(el("span", "hint", "The file was not uploaded. Ask the customer to send it to you."));
+  }
+  if (it.email) {
+    const c = el("button", "btn btn-ghost btn-sm", "Copy email");
+    c.type = "button"; c.addEventListener("click", () => copyWith(c, it.email, "Copy email")); acts.append(c);
+  }
+  const isOrder = it.kind === "order";
+  const saved = Admin.states[it.id] || {}, draft = Admin.drafts[it.id] || {};
+  const pick = (d, s, f) => d != null ? d : (s != null ? String(s) : (f != null ? String(f) : ""));
+  let quoteEl = null, priceIn = null, shipIn = null, errEl = null;
+  const readQuote = () => ({ price: parseMoney(priceIn.value), shipping: parseMoney(shipIn.value) });
+  const setErr = msg => { errEl.textContent = msg; errEl.hidden = !msg; };
+  if (isOrder) {
+    quoteEl = el("div", "quote");
+    priceIn = el("input", "input"); shipIn = el("input", "input");
+    const fields = [[priceIn, "Price ($)", "price", pick(draft.price, saved.price, it.total)], [shipIn, "Shipping ($)", "shipping", pick(draft.shipping, saved.shipping, null)]];
+    fields.forEach(([inp, text, key, val]) => {
+      inp.type = "number"; inp.min = "0"; inp.step = "0.01"; inp.inputMode = "decimal"; inp.value = val; inp.id = `q-${key}-${it.id}`;
+      const f = el("div"), lab = el("label", "lbl", text); lab.htmlFor = inp.id;
+      f.append(lab, inp); quoteEl.append(f);
+    });
+    const foot = el("div", "qfoot"), totalLine = el("span", "qtotal", "Total "), totalEl = el("strong", "", "");
+    totalLine.append(totalEl);
+    const showTotal = () => { const q = readQuote(); totalEl.textContent = q.price != null && q.shipping != null ? moneyX(q.price + q.shipping) : "Enter price and shipping"; };
+    const onType = () => { Admin.drafts[it.id] = { price: priceIn.value, shipping: shipIn.value }; setErr(""); showTotal(); };
+    priceIn.addEventListener("input", onType); shipIn.addEventListener("input", onType); showTotal();
+    const saveQ = el("button", "btn btn-ghost btn-sm", "Save quote");
+    saveQ.type = "button";
+    saveQ.addEventListener("click", async () => {
+      const q = readQuote();
+      if (q.price == null) { setErr("Enter a price (0 or more)."); return; }
+      saveQ.disabled = true;
+      try { delete Admin.drafts[it.id]; await saveAdmin(it, { price: q.price, shipping: q.shipping }); saveQ.textContent = "Saved"; }
+      catch (e) { saveQ.textContent = "Couldn't save"; }
+      setTimeout(() => { saveQ.textContent = "Save quote"; saveQ.disabled = false; }, 1800);
+    });
+    errEl = el("p", "field-err"); errEl.hidden = true; errEl.style.gridColumn = "1 / -1"; errEl.style.margin = "0";
+    foot.append(totalLine, saveQ); quoteEl.append(foot, errEl);
+  }
+  const tog = el("button", "btn btn-ghost btn-sm", open ? "Mark done" : "Reopen");
+  tog.type = "button";
+  tog.addEventListener("click", async () => {
+    const patch = { status: open ? "done" : "new" };
+    if (open && isOrder) {
+      const q = readQuote();
+      if (q.price == null || q.shipping == null) { setErr("Enter a price and shipping (0 is fine) before marking done."); return; }
+      patch.price = q.price; patch.shipping = q.shipping; Admin.receiptFor = it.id; delete Admin.drafts[it.id];
+    }
+    tog.disabled = true;
+    try { await saveAdmin(it, patch); }
+    catch (e) { tog.textContent = "Couldn't update"; tog.disabled = false; }
+  });
+  acts.append(tog);
+  const hasQuote = isOrder && saved.price != null && saved.shipping != null;
+  if (!open && hasQuote) {
+    const sr = el("button", "btn btn-primary btn-sm", "Send receipt");
+    sr.type = "button"; sr.addEventListener("click", () => { Admin.receiptFor = it.id; renderAdmin(); });
+    acts.prepend(sr);
+  }
+  card.append(top, who, kv);
+  if (quoteEl) card.append(quoteEl);
+  card.append(acts);
+  if (!open && hasQuote && Admin.receiptFor === it.id) {
+    const text = receiptText(it, saved), rc = el("div", "receipt");
+    const pre = el("pre", "", text), row = el("div", "sub-actions");
+    const copy = el("button", "btn btn-primary btn-sm", "Copy receipt");
+    copy.type = "button"; copy.addEventListener("click", () => copyWith(copy, text, "Copy receipt", pre));
+    row.append(copy);
+    if (it.email) {
+      const mail = el("a", "btn btn-ghost btn-sm", "Open in email app");
+      mail.href = "mailto:" + it.email + "?subject=" + encodeURIComponent("Your Idea to a Reality receipt") + "&body=" + encodeURIComponent(text);
+      row.append(mail);
+    }
+    const hide = el("button", "link-btn", "Hide"); hide.type = "button";
+    hide.addEventListener("click", () => { Admin.receiptFor = null; renderAdmin(); });
+    row.append(hide);
+    rc.append(el("p", "eyebrow", "Receipt for " + (it.email || "customer")), pre, row,
+      el("p", "hint", "This page can't send email on its own. Copy the receipt into your email app and send it to " + (it.email || "the customer") + ". Open in email app may not work in every browser."));
+    card.append(rc);
+  }
+  return card;
+}
+
+function customersView() {
+  const map = new Map();
+  Admin.subs.forEach(s => {
+    const key = (s.email || "").trim().toLowerCase();
+    if (!key) return;
+    const c = map.get(key) || { email: s.email.trim(), name: s.name, orders: 0, support: 0, last: s.createdAt };
+    if (s.kind === "order") c.orders++; else c.support++;
+    if (s.createdAt > c.last) { c.last = s.createdAt; c.name = s.name; }
+    map.set(key, c);
+  });
+  const list = Array.from(map.values()).sort((a, b) => b.last.localeCompare(a.last));
+  const wrap = el("div", "a-list");
+  if (!list.length) { wrap.append(el("p", "a-empty", "No customer emails yet. They appear here after someone places an order or sends a message.")); return wrap; }
+  const all = el("button", "btn btn-ghost btn-sm", `Copy all ${list.length} emails`);
+  all.type = "button"; all.style.alignSelf = "flex-start";
+  all.addEventListener("click", () => copyWith(all, list.map(c => c.email).join(", "), `Copy all ${list.length} emails`));
+  wrap.append(all);
+  const rows = el("div");
+  list.forEach(c => {
+    const row = el("div", "cust"), info = el("div");
+    info.append(el("b", "", c.name || "No name"), el("span", "", c.email),
+      el("span", "", `${c.orders} order${c.orders === 1 ? "" : "s"} · ${c.support} message${c.support === 1 ? "" : "s"} · last ${fmtTime(c.last)}`));
+    const b = el("button", "btn btn-ghost btn-sm", "Copy email");
+    b.type = "button"; b.addEventListener("click", () => copyWith(b, c.email, "Copy email"));
+    row.append(info, b); rows.append(row);
+  });
+  wrap.append(rows);
+  return wrap;
+}
+
+function renderAdmin() {
+  if (Admin.gate !== "ok" || $("#adminPanel").hidden) return;
+  const body = $("#adminBody"), subs = Admin.subs;
+  body.replaceChildren();
+  const stats = el("div", "a-stats");
+  [["New", subs.filter(isOpenItem).length], ["Orders", subs.filter(s => s.kind === "order").length],
+   ["STL files", subs.filter(s => s.stl && s.stl.assetId).length], ["Support", subs.filter(s => s.kind === "support").length]]
+    .forEach(([k, v]) => { const t = el("div", "a-stat"); t.append(el("strong", "", String(v)), el("span", "", k)); stats.append(t); });
+  body.append(stats);
+  body.append(pills([["inbox", "Inbox"], ["customers", "Customers"]], Admin.tab, v => { Admin.tab = v; }, "Admin view"));
+  if (Admin.tab === "customers") { body.append(customersView()); return; }
+  const bar = el("div", "a-bar");
+  bar.append(
+    pills([["all", "All"], ["order", "Orders"], ["support", "Support"]], Admin.kind, v => { Admin.kind = v; }, "Type"),
+    pills([["new", "New"], ["done", "Done"], ["all", "Everything"]], Admin.status, v => { Admin.status = v; }, "Status"));
+  body.append(bar);
+  const shown = subs.filter(s => (Admin.kind === "all" || s.kind === Admin.kind) &&
+    (Admin.status === "all" || (Admin.status === "new" ? isOpenItem(s) : !isOpenItem(s))));
+  const list = el("div", "a-list");
+  if (!shown.length) list.append(el("p", "a-empty", subs.length ? "Nothing matches these filters." : "No submissions yet. Orders, support messages, and STL files show up here as customers send them."));
+  shown.forEach(s => list.append(subCard(s)));
+  body.append(list);
+}
+
+function startAdmin() {
+  if (Admin.started) { renderAdmin(); return; }
+  Admin.started = true;
+  Store.db.collection("submissions").onSnapshot(snap => {
+    const all = [];
+    snap.docs.forEach(d => { ((d.data() || {}).items || []).forEach(it => all.push(it)); });
+    all.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    Admin.subs = all; renderAdmin();
+  }, () => { Admin.gate = "error"; showGate("Couldn't load submissions", "Close this panel and open it again. If it keeps happening, reload the page."); });
+  Store.db.collection("adminState").onSnapshot(snap => {
+    const m = {}; snap.docs.forEach(d => { m[d.id] = d.data() || {}; });
+    Admin.states = m; renderAdmin();
+  }, () => {});
+}
+async function openAdmin() {
+  const panel = $("#adminPanel");
+  panel.hidden = false; document.documentElement.classList.add("lock");
+  $("#adminClose").focus();
+  showGate("Checking access", "One moment.");
+  await Store.init();
+  const canAdmin = Store.user ? await Store.user.canEdit() : false;
+  if (!Store.db) { Admin.gate = "off"; showGate("Admin Panel unavailable", "Submissions can't load here. Open the site in Claude while signed in to your admin account."); }
+  else if (!canAdmin) { Admin.gate = "locked"; showGate("Team only", "This area is for the Idea to a Reality team. Sign in to Claude with the admin account to see submissions."); }
+  else { Admin.gate = "ok"; renderAdmin(); startAdmin(); }
+}
+function closeAdmin() {
+  $("#adminPanel").hidden = true; document.documentElement.classList.remove("lock"); $("#adminFab").focus();
+}
+$("#adminFab").addEventListener("click", openAdmin);
+$("#adminClose").addEventListener("click", closeAdmin);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#adminPanel").hidden) closeAdmin(); });
+Store.init().then(() => { if (!Store.db) $("#adminFab").hidden = true; });
+
+/* ---------- Cart and checkout ---------- */
+const PAYMENT_METHODS = [
+  { id: "paypal", name: "PayPal", note: "Pay with your PayPal account or a card." }
+];
+const Cart = { lines: [], step: "cart", payEmail: "", coupon: null, couponCode: "", couponMsg: null };
+const USED_KEY = "itar-coupons-used-v1";
+const usedKey = (code, email) => String(code).toUpperCase() + "|" + email.trim().toLowerCase();
+function usedList() { try { return JSON.parse(localStorage.getItem(USED_KEY) || "[]"); } catch (e) { return []; } }
+const couponUsed = (code, email) => usedList().includes(usedKey(code, email));
+function markCouponUsed(code, email) {
+  try { const a = usedList(); a.push(usedKey(code, email)); localStorage.setItem(USED_KEY, JSON.stringify(a)); } catch (e) {}
+}
+function cartDiscount() {
+  const c = Cart.coupon; if (!c) return 0;
+  const sub = cartSubtotal();
+  const d = c.type === "percent" ? sub * c.value / 100 : c.value;
+  return Math.min(sub, Math.round(d * 100) / 100);
+}
+function applyCoupon(raw) {
+  const code = raw.trim().toUpperCase();
+  const say = (text, ok) => { Cart.couponMsg = { text, ok: !!ok }; Cart.coupon = ok ? Cart.coupon : null; renderCart(); };
+  if (!code) return say("Enter a code.");
+  if (!EMAIL_RE.test(Cart.payEmail)) return say("Enter your PayPal email above first. Each code works once per email.");
+  const c = CONFIG.coupons.find(x => String(x.code).toUpperCase() === code);
+  if (!c || (c.expires && new Date(c.expires + "T23:59:59") < new Date())) return say("That code isn't valid.");
+  if (couponUsed(c.code, Cart.payEmail)) return say("This email has already used that code.");
+  Cart.coupon = { code: String(c.code).toUpperCase(), type: c.type === "percent" ? "percent" : "fixed", value: Number(c.value) || 0, email: Cart.payEmail.trim().toLowerCase() };
+  Cart.couponCode = "";
+  say(`${Cart.coupon.code} applied.`, true);
+}
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const CART_KEY = "itar-cart-v1";
+function loadCart() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+    Cart.lines = raw.filter(l => by(CONFIG.products, l.pid) && by(CONFIG.colors, l.color) && l.qty > 0)
+      .map(l => ({ pid: l.pid, color: l.color, qty: Math.min(99, l.qty | 0) }));
+  } catch (e) { Cart.lines = []; }
+}
+function saveCart() { try { localStorage.setItem(CART_KEY, JSON.stringify(Cart.lines)); } catch (e) {} }
+const cartCount = () => Cart.lines.reduce((s, l) => s + l.qty, 0);
+const cartSubtotal = () => Cart.lines.reduce((s, l) => s + by(CONFIG.products, l.pid).price * l.qty, 0);
+function addToCart(pid, color) {
+  const l = Cart.lines.find(x => x.pid === pid && x.color === color);
+  if (l) l.qty = Math.min(99, l.qty + 1); else Cart.lines.push({ pid, color, qty: 1 });
+  Cart.step = "cart"; saveCart(); renderCart();
+}
+function setQty(l, q) {
+  if (q < 1) Cart.lines = Cart.lines.filter(x => x !== l); else l.qty = Math.min(99, q);
+  if (!Cart.lines.length) { Cart.step = "cart"; Cart.coupon = null; Cart.couponMsg = null; }
+  saveCart(); renderCart();
+}
+function paypalUrl() {
+  const q = new URLSearchParams({ cmd: "_cart", upload: "1", business: CONFIG.paypalEmail, currency_code: CONFIG.currencyCode, no_note: "1" });
+  if (EMAIL_RE.test(Cart.payEmail || "")) q.set("email", Cart.payEmail);
+  Cart.lines.forEach((l, i) => {
+    const p = by(CONFIG.products, l.pid), n = i + 1;
+    q.set("item_name_" + n, `${p.name} (${by(CONFIG.colors, l.color).name}, ${by(CONFIG.materials, p.material).name})`);
+    q.set("amount_" + n, p.price.toFixed(2));
+    q.set("quantity_" + n, String(l.qty));
+  });
+  if (CONFIG.shipping != null) q.set("handling_cart", Number(CONFIG.shipping).toFixed(2));
+  const disc = cartDiscount();
+  if (disc > 0) q.set("discount_amount_cart", disc.toFixed(2));
+  return "https://www.paypal.com/cgi-bin/webscr?" + q.toString();
+}
+function trow(label, value, big) {
+  const r = el("div", "trow" + (big ? " big" : ""));
+  r.append(el("span", "", label), el(big ? "strong" : "span", big ? "" : "mono", value));
+  return r;
+}
+function renderCart() {
+  const n = cartCount();
+  $("#cartCount").textContent = String(n);
+  $("#cartBtn").setAttribute("aria-label", `Open cart, ${n} item${n === 1 ? "" : "s"}`);
+  const body = $("#cartBody"), foot = $("#cartFoot");
+  let payLink = null;
+  body.replaceChildren(); foot.replaceChildren();
+  if (!Cart.lines.length) {
+    const e = el("div", "cart-empty");
+    const go = el("button", "btn btn-primary", "Shop ready to ship");
+    go.type = "button"; go.addEventListener("click", () => { closeCart(); $("#shop").scrollIntoView({ behavior: "smooth" }); });
+    e.append(el("p", "", "Your cart is empty. Add a ready-to-ship piece to get started."), go);
+    body.append(e); foot.hidden = true; return;
+  }
+  foot.hidden = false;
+  Cart.lines.forEach(l => {
+    const p = by(CONFIG.products, l.pid), c = by(CONFIG.colors, l.color);
+    const row = el("div", "cline");
+    const th = el("div", "cthumb"); th.innerHTML = thumb(p.shape, c.hex);
+    const info = el("div");
+    const meta = el("div", "cmeta"); const sw = document.createElement("i"); sw.style.setProperty("--c", c.hex);
+    meta.append(sw, document.createTextNode(`${c.name} · ${by(CONFIG.materials, p.material).name} · ${money(p.price)}`));
+    info.append(el("b", "", p.name), meta);
+    const ctl = el("div", "crow");
+    const st = el("div", "stepper");
+    const minus = el("button", "", "−"), plus = el("button", "", "+"), out = el("output", "", String(l.qty));
+    minus.type = plus.type = "button";
+    minus.setAttribute("aria-label", `Decrease ${p.name}`); plus.setAttribute("aria-label", `Increase ${p.name}`);
+    minus.addEventListener("click", () => setQty(l, l.qty - 1)); plus.addEventListener("click", () => setQty(l, l.qty + 1));
+    st.append(minus, out, plus);
+    const rm = el("button", "link-btn", "Remove"); rm.type = "button"; rm.addEventListener("click", () => setQty(l, 0));
+    ctl.append(st, el("span", "cprice", money(p.price * l.qty)), rm);
+    row.append(th, info, ctl); body.append(row);
+  });
+  if (Cart.step === "pay") {
+    body.append(el("p", "pay-title", "Payment method"));
+    PAYMENT_METHODS.forEach(m => {
+      const lab = el("label", "pay-opt"), inp = document.createElement("input");
+      inp.type = "radio"; inp.name = "pay"; inp.checked = true; inp.value = m.id;
+      const t = el("div"); t.append(el("b", "", m.name), el("small", "", m.note));
+      lab.append(inp, t); body.append(lab);
+    });
+    const wrap = el("div"); wrap.style.marginTop = "16px";
+    const lab = el("label", "lbl", "Your PayPal email"); lab.htmlFor = "payEmail";
+    const inp = el("input", "input"); inp.id = "payEmail"; inp.type = "email"; inp.autocomplete = "email";
+    inp.placeholder = "you@example.com"; inp.value = Cart.payEmail;
+    inp.addEventListener("input", () => { Cart.payEmail = inp.value.trim(); if (payLink) payLink.href = paypalUrl(); });
+    wrap.append(lab, inp, el("p", "hint", "Enter the email for the PayPal account you'll pay from. The payment goes to Idea to a Reality."));
+    body.append(wrap);
+    const cp = el("div", "coupon"), cl = el("label", "lbl", "Coupon code"); cl.htmlFor = "couponCode";
+    cp.append(cl);
+    if (Cart.coupon) {
+      const ap = el("div", "applied"), rmc = el("button", "link-btn", "Remove");
+      rmc.type = "button"; rmc.addEventListener("click", () => { Cart.coupon = null; Cart.couponMsg = null; renderCart(); });
+      ap.append(el("span", "chip new", `${Cart.coupon.code} applied`), rmc); cp.append(ap);
+    } else {
+      const row = el("div", "row"), ci = el("input", "input"), ca = el("button", "btn btn-ghost", "Apply");
+      ci.id = "couponCode"; ci.type = "text"; ci.autocomplete = "off"; ci.placeholder = "Enter code"; ci.value = Cart.couponCode;
+      ca.type = "button";
+      const go = () => { Cart.couponCode = ci.value; applyCoupon(ci.value); };
+      ca.addEventListener("click", go);
+      ci.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+      row.append(ci, ca); cp.append(row);
+    }
+    if (Cart.couponMsg) cp.append(el("p", "cmsg " + (Cart.couponMsg.ok ? "ok" : "bad"), Cart.couponMsg.text));
+    cp.append(el("p", "hint", "Each code works once per email."));
+    body.append(cp);
+  }
+  const sub = cartSubtotal(), ship = CONFIG.shipping, disc = cartDiscount(), after = sub - disc;
+  foot.append(trow("Subtotal", money(sub)));
+  if (disc > 0) foot.append(trow(`Discount (${Cart.coupon.code})`, "−" + money(disc)));
+  foot.append(trow("Shipping", ship == null ? "Added at checkout" : money(Number(ship))),
+    trow("Your total plus shipping", ship == null ? `${money(after)} + shipping` : money(after + Number(ship)), true));
+  if (Cart.step === "cart") {
+    const go = el("button", "btn btn-primary btn-lg btn-block", "Proceed to Checkout");
+    go.type = "button"; go.addEventListener("click", () => { Cart.step = "pay"; renderCart(); });
+    foot.append(go);
+    if (ship == null) foot.append(el("p", "cart-note", "Shipping prices aren't set yet. We'll confirm yours with you after you pay."));
+  } else {
+    const pay = el("a", "btn btn-primary btn-lg btn-block", "Pay with PayPal");
+    pay.href = paypalUrl(); pay.target = "_blank"; pay.rel = "noopener noreferrer"; payLink = pay;
+    const payErr = el("p", "field-err", "Enter your PayPal email before paying."); payErr.hidden = true;
+    pay.addEventListener("click", e => {
+      const ok = EMAIL_RE.test(Cart.payEmail);
+      payErr.hidden = ok; if (!ok) { e.preventDefault(); const f = $("#payEmail"); if (f) f.focus(); return; }
+      const c = Cart.coupon;
+      if (c) {
+        if (c.email !== Cart.payEmail.trim().toLowerCase() || couponUsed(c.code, Cart.payEmail)) {
+          e.preventDefault(); Cart.coupon = null;
+          Cart.couponMsg = { text: "That code can't be used with this email, so it was removed. Check the total and try again.", ok: false };
+          renderCart(); return;
+        }
+        markCouponUsed(c.code, Cart.payEmail);
+      }
+    });
+    const back = el("button", "btn btn-ghost btn-block", "Back to cart");
+    back.type = "button"; back.addEventListener("click", () => { Cart.step = "cart"; renderCart(); });
+    foot.append(pay, payErr, back,
+      el("p", "cart-note", "PayPal opens in a new tab. " + (ship == null ? "Shipping isn't included yet, so we'll confirm it with you after you pay. " : "") + "When you're done, come back here and clear your cart."));
+    const clr = el("button", "link-btn", "I've paid, clear my cart");
+    clr.type = "button"; clr.style.alignSelf = "flex-start";
+    clr.addEventListener("click", () => { Cart.lines = []; Cart.step = "cart"; saveCart(); renderCart(); });
+    foot.append(clr);
+  }
+}
+function openCart() {
+  Cart.step = "cart"; renderCart();
+  $("#cartScrim").hidden = false; $("#cartPanel").hidden = false; document.documentElement.classList.add("lock");
+  $("#cartClose").focus();
+}
+function closeCart() {
+  $("#cartScrim").hidden = true; $("#cartPanel").hidden = true;
+  if ($("#adminPanel").hidden) document.documentElement.classList.remove("lock");
+  $("#cartBtn").focus();
+}
+$("#cartBtn").addEventListener("click", openCart);
+$("#cartClose").addEventListener("click", closeCart);
+$("#cartScrim").addEventListener("click", closeCart);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#cartPanel").hidden) closeCart(); });
+function openDeal() { $("#dealWrap").hidden = false; $("#dealCart").focus(); }
+function closeDeal() { $("#dealWrap").hidden = true; $("#dealBtn").focus(); }
+$("#dealBtn").addEventListener("click", openDeal);
+$("#dealClose").addEventListener("click", closeDeal);
+$("#dealCart").addEventListener("click", () => { $("#dealWrap").hidden = true; openCart(); });
+$("#dealWrap").addEventListener("click", e => { if (e.target === e.currentTarget) closeDeal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#dealWrap").hidden) closeDeal(); });
+$("#testBar").hidden = !CONFIG.testMode;
+loadCart(); renderCart();
+
+/* ---------- Boot ---------- */
+renderShop();
+renderPickers();
+sync();
+</script>
+
+</body></html>
